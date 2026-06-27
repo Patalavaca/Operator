@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0f1a">
+<title>Operator</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiT3BlcmF0b3IiLCJzaG9ydF9uYW1lIjoiT3BlcmF0b3IiLCJzdGFydF91cmwiOiIuLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBmMWEiLCJ0aGVtZV9jb2xvciI6IiMwYTBmMWEiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxOTIgMTkyJyUzRSUzQ3JlY3Qgd2lkdGg9JzE5MicgaGVpZ2h0PScxOTInIHJ4PScyMCcgZmlsbD0nJTIzMGEwZjFhJy8lM0UlM0N0ZXh0IHg9Jzk2JyB5PScxMjAnIGZvbnQtc2l6ZT0nODAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyUyM2ZmZTY4MCclM0UlRTIlOUElQTElM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='20' fill='%230a0f1a'/><text x='96' y='120' font-size='80' text-anchor='middle' fill='%23ffe680'>⚡</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Crimson+Pro:wght@300;400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0f1a;--bg2:#111827;--bg3:#1a2236;--bg4:#232d42;
+--gold:#ffe680;--gold-dim:rgba(255,230,128,0.6);--gold-faint:rgba(255,230,128,0.15);
+--teal:#5eead4;--teal-dim:rgba(94,234,212,0.6);--teal-faint:rgba(94,234,212,0.12);
+--red:#f87171;--red-dim:rgba(248,113,113,0.5);--red-faint:rgba(248,113,113,0.12);
+--green:#4ade80;--green-dim:rgba(74,222,128,0.5);--green-faint:rgba(74,222,128,0.12);
+--amber:#fbbf24;--amber-faint:rgba(251,191,36,0.12);
+--text:rgba(255,255,255,0.88);--text2:rgba(255,255,255,0.65);--text3:rgba(255,255,255,0.45);
+--font-display:'Playfair Display',serif;--font-body:'Crimson Pro',serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);-webkit-tap-highlight-color:transparent;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column}
+.header{padding:14px 20px 10px;background:var(--bg);border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0}
+.header h1{font-family:var(--font-display);font-size:22px;color:var(--gold);font-weight:600;letter-spacing:0.5px}
+.header-sub{font-size:13px;color:var(--text3);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;padding:9px 12px 7px;text-align:center;font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 100px}
+.card{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.04)}
+.card-title{font-family:var(--font-display);font-size:15px;color:var(--gold);margin-bottom:8px;font-weight:600}
+.card-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.card-value{font-family:var(--font-display);font-size:26px;color:var(--text);font-weight:700}
+.card-value.gold{color:var(--gold)}
+.card-sub{font-size:14px;color:var(--text2);margin-top:4px;line-height:1.55}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.stat-box{background:var(--bg3);border-radius:10px;padding:10px;text-align:center}
+.stat-num{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--gold)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+.deadline-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.deadline-row:last-child{border-bottom:none}
+.deadline-name{font-size:14px;color:var(--text)}
+.deadline-days{font-family:var(--font-display);font-size:16px;font-weight:700}
+.deadline-date{font-size:11px;color:var(--text3);margin-top:1px}
+.urgent{color:var(--red)}.soon{color:var(--amber)}.ok{color:var(--green)}
+.report-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px}
+.report-row .label{color:var(--text2)}.report-row .value{font-weight:500}
+.good{color:var(--green)}.bad{color:var(--red)}.neutral{color:var(--amber)}
+.report-header{font-family:var(--font-display);font-size:14px;color:var(--teal);margin-bottom:6px;font-weight:600}
+.aim-progress{display:flex;align-items:center;gap:8px;margin-top:4px}
+.aim-bar-bg{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.aim-bar-fill{height:100%;border-radius:3px}
+.aim-pct{font-size:11px;color:var(--text3);min-width:28px;text-align:right}
+.aim-gate{font-size:11px;color:var(--amber);margin-top:3px}
+.aim-status{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:5px;font-weight:500}
+.aim-status.moving{background:var(--green-faint);color:var(--green)}
+.aim-status.stalled{background:var(--red-faint);color:var(--red)}
+.aim-status.blocked{background:var(--amber-faint);color:var(--amber)}
+.aim-status.complete{background:var(--green-faint);color:var(--green)}
+.priority-card{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--gold-faint);border-radius:12px;padding:16px;margin-bottom:10px}
+.priority-num{font-family:var(--font-display);font-size:28px;color:var(--gold);font-weight:700;line-height:1}
+.priority-title{font-size:16px;color:var(--text);margin-top:5px;font-weight:500}
+.priority-why{font-size:13px;color:var(--text2);margin-top:5px;line-height:1.5}
+.btn{display:block;width:100%;padding:12px;border:none;border-radius:10px;font-family:var(--font-display);font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-gold{background:var(--gold);color:var(--bg)}
+.btn-gold:disabled{opacity:0.4;cursor:not-allowed}
+.btn-outline{background:none;border:1px solid var(--gold-dim);color:var(--gold);margin-bottom:8px}
+.ai-prompt-area textarea{width:100%;background:var(--bg);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px;resize:none;min-height:90px}
+.ai-prompt-area textarea::placeholder{color:var(--text3)}
+.ai-prompt-area textarea:focus{outline:none;border-color:var(--gold-dim)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.chip{font-size:11px;padding:4px 9px;border-radius:12px;background:var(--gold-faint);color:var(--gold-dim);border:1px solid rgba(255,230,128,0.1);cursor:pointer}
+.chip.selected{background:rgba(255,230,128,0.25);color:var(--gold);border-color:var(--gold-dim)}
+.ai-response{background:var(--bg3);border-radius:10px;padding:14px;margin-top:10px;border-left:3px solid var(--gold)}
+.ai-response p{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:8px}
+.ai-response p:last-child{margin-bottom:0}
+.ai-loading{text-align:center;padding:24px;color:var(--gold-dim);font-size:14px}
+.ai-loading .dots::after{content:'';animation:dots 1.5s infinite}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+.setting-row{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.setting-label{font-size:14px;color:var(--text);margin-bottom:4px}
+.setting-input{background:var(--bg3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:8px 10px;width:100%}
+.setting-input:focus{outline:none;border-color:var(--gold-dim)}
+.backup-btn{position:fixed;top:14px;right:16px;background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;z-index:10}
+.empty{text-align:center;padding:30px 16px;color:var(--text3);font-size:14px;line-height:1.6}
+.content::-webkit-scrollbar{width:2px}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+/* RESET TAB */
+.reset-step{background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:8px;border-left:3px solid var(--gold-dim)}
+.reset-step.active-step{border-left-color:var(--gold);background:var(--bg4)}
+.reset-step-day{font-family:var(--font-display);font-size:13px;color:var(--gold);font-weight:600}
+.reset-step-title{font-size:15px;color:var(--text);margin-top:3px;font-weight:500}
+.reset-step-detail{font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5}
+.reset-step-check{display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer}
+.reset-step-check input{width:18px;height:18px;accent-color:var(--gold)}
+.reset-step-check label{font-size:13px;color:var(--text2)}
+/* OTHER SIDE */
+.vision-card{background:linear-gradient(135deg,#0f1f15,var(--bg2));border:1px solid var(--green-faint);border-radius:12px;padding:16px;margin-bottom:10px}
+.vision-title{font-family:var(--font-display);font-size:16px;color:var(--green);font-weight:600}
+.vision-body{font-size:14px;color:var(--text);margin-top:6px;line-height:1.6}
+.vision-contrast{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.vision-now,.vision-then{border-radius:8px;padding:10px;font-size:12px;line-height:1.5}
+.vision-now{background:var(--red-faint);color:var(--red)}
+.vision-then{background:var(--green-faint);color:var(--green)}
+.vision-now strong,.vision-then strong{display:block;margin-bottom:4px;font-size:13px}
+/* IN THE MOMENT */
+.moment-btn{background:linear-gradient(135deg,#1a1a0a,var(--bg2));border:2px solid var(--gold);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;text-align:center;transition:all 0.2s}
+.moment-btn:active{transform:scale(0.98);background:var(--gold-faint)}
+.moment-btn-icon{font-size:28px;margin-bottom:4px}
+.moment-btn-text{font-family:var(--font-display);font-size:16px;color:var(--gold);font-weight:600}
+.moment-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:200;padding:20px;overflow-y:auto;animation:fadeIn 0.3s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.moment-content{max-width:400px;margin:0 auto;padding-top:40px}
+.moment-question{font-family:var(--font-display);font-size:22px;color:var(--gold);text-align:center;line-height:1.4;margin-bottom:24px;padding:0 10px}
+.moment-card{background:var(--bg3);border-radius:12px;padding:16px;margin-bottom:12px;border-left:3px solid var(--gold-dim)}
+.moment-card-title{font-family:var(--font-display);font-size:14px;color:var(--gold);font-weight:600;margin-bottom:6px}
+.moment-card-body{font-size:14px;color:var(--text);line-height:1.6}
+.moment-close{display:block;width:100%;padding:14px;border:2px solid var(--gold);background:none;border-radius:10px;color:var(--gold);font-family:var(--font-display);font-size:16px;font-weight:600;cursor:pointer;margin-top:16px}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<h1>Operator</h1>
+<div class="header-sub" id="headerSub"></div>
+</div>
+<button class="backup-btn" onclick="toggleBackup()" title="Backup">⬆⬇</button>
+<div class="tabs" id="tabs"></div>
+<div class="content" id="content"></div>
+</div>
+<div id="backupOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:100;padding:20px;overflow-y:auto">
+
+<!-- IN THE MOMENT OVERLAY -->
+<div id="momentOverlay" class="moment-overlay">
+<div class="moment-content">
+<div class="moment-question">Is this you choosing, or your nervous system choosing for you?</div>
+
+<div class="moment-card">
+<div class="moment-card-title">The chain</div>
+<div class="moment-card-body">This isn't just a beer or a bag of crisps. It's this → tomorrow's hangover/guilt → tomorrow's bad food → the shame → the week lost → the pattern continues → still at this weight at Christmas. You've seen this chain before. You're standing at link one.</div>
+</div>
+
+<div class="moment-card">
+<div class="moment-card-title">The real question</div>
+<div class="moment-card-body">Are you genuinely choosing this because you want it and it's worth it — a night out with John, a meal that matters? Or is your SNS firing and reaching for the fastest dopamine because you're tired, stressed, or overwhelmed? If it's the first, enjoy it without guilt. If it's the second, that's not a choice — that's a reflex. You can override a reflex.</div>
+</div>
+
+<div class="moment-card">
+<div class="moment-card-title">One thing that changes everything</div>
+<div class="moment-card-body">Whatever you do tonight, commit to one thing: protein at breakfast tomorrow. Not a perfect day. Not five WTD tasks. Just protein at breakfast. That single action breaks the chain. It stops one bad evening from becoming a lost week. The morning after is where the real damage happens — not tonight.</div>
+</div>
+
+<div class="moment-card">
+<div class="moment-card-title">Remember why</div>
+<div class="moment-card-body" id="momentDeadlineText"></div>
+</div>
+
+<div class="moment-card" style="border-left-color:var(--amber)">
+<div class="moment-card-title" style="color:var(--amber)">Two versions of you with a beer</div>
+<div class="moment-card-body">One version is in bad shape, carrying guilt, knowing this beer is another step backward, feeling it in the way clothes fit, dreading the scales, wondering why he can't just stop. The other version is in good shape, earned it, enjoying it with no guilt at all — because he's maintaining, not losing, and one beer doesn't touch a thing. Same beer. Same pub. Completely different experience. You're choosing which version you're building right now.</div>
+</div>
+
+<div class="moment-card" style="border-left-color:var(--green)">
+<div class="moment-card-title" style="color:var(--green)">The other side</div>
+<div class="moment-card-body">At 11st 12 this decision doesn't carry this weight anymore. The deficit is over. The guilt is over. You can have the beer and the burger and it doesn't matter because you're maintaining, not losing. Every time you choose right now, you're one step closer to that version of your life where this internal battle simply doesn't exist.</div>
+</div>
+
+<button class="moment-close" onclick="closeMoment()">I've got this</button>
+<button class="moment-close" style="border-color:var(--teal);color:var(--teal);margin-top:8px" onclick="closeMoment()">I chose it consciously — and that's OK</button>
+</div>
+</div>
+<div style="max-width:400px;margin:60px auto">
+<h2 style="font-family:var(--font-display);color:var(--gold);margin-bottom:14px">Backup</h2>
+<button class="btn btn-outline" onclick="exportData()">Export Code</button>
+<button class="btn btn-outline" onclick="promptImport()">Import Code</button>
+<button class="btn btn-outline" onclick="toggleBackup()">Close</button>
+<textarea id="backupArea" style="width:100%;margin-top:10px;min-height:60px;background:var(--bg3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-family:monospace;font-size:11px;padding:8px;display:none"></textarea>
+</div>
+</div>
+<script>
+// ============================================================
+// THE OPERATOR v2 — Command Centre
+// localStorage keys: wtd_v3, suite_v2, restore_v2, christmas_v2
+// Own key: operator_v1
+// ============================================================
+
+const TABS=['Briefing','Report','Aims','Reset','Challenge','Priority','Other Side','Settings'];
+let currentTab='Briefing';
+
+const DEADLINES=[
+  {name:'Birthday',date:new Date(2026,7,12),icon:'🎂'},
+  {name:'London Stag',date:new Date(2026,9,17),icon:'🍺'},
+  {name:'Dublin Stag',date:new Date(2026,10,20),icon:'✈️'},
+  {name:'Wedding',date:new Date(2027,0,2),icon:'💍'},
+  {name:'Padel',date:new Date(2027,0,31),icon:'🎾'}
+];
+
+const MILESTONES=[
+  {lbs:182,st:'13st 0',label:'First milestone'},
+  {lbs:174,st:'12st 8',label:'Halfway'},
+  {lbs:170,st:'12st 4',label:'Unlock yoga'},
+  {lbs:168,st:'12st 2',label:'Getting close'},
+  {lbs:164,st:'12st 0',label:'Unlock padel'},
+  {lbs:162,st:'11st 12',label:'Target — book Gran Canaria'}
+];
+const START_WEIGHT=191;
+
+// RESET PROTOCOL — 5-day bounce back
+const RESET_STEPS=[
+  {day:'Day 1',title:'Just hold the line',detail:'Do your 10,000 steps. Eat protein at breakfast. That is it. Nothing else. No guilt about yesterday, no plan for tomorrow. One day, two things.',action:'Steps + protein breakfast only'},
+  {day:'Day 2',title:'Add the sauna',detail:'Steps again. Protein at breakfast again. Add 15 mins sauna — your SNS is fired up from the disruption and the sauna is the fastest way to calm it down. The diet fix starts with the nervous system, not the food.',action:'Steps + protein breakfast + sauna'},
+  {day:'Day 3',title:'Get on the cross trainer',detail:'15 minutes, Zone 2, conversational pace. This should feel too easy — that is correct. You are restarting a pump that has been idle, not training for a race. Sauna after. Protein at every meal today, not just breakfast.',action:'Steps + cross trainer 15min + sauna + protein all meals'},
+  {day:'Day 4',title:'Clear the environment',detail:'Go through the kitchen. Remove or finish the trigger foods — crisps, chocolate, whatever accumulated during the disruption. Not because you are weak, but because keeping them there costs you a decision every time you walk past. Remove the decision.',action:'Steps + kitchen reset + cross trainer + sauna'},
+  {day:'Day 5',title:'Log everything',detail:'Open WTD and set 5 tasks for today. Open Suite and mark today on the food calendar. Open Restore and log your sessions. The thread is no longer broken — you are back in the system. The apps can see you again. The Operator can see you again.',action:'Full routine: steps + WTD + Suite + Restore + cross trainer + sauna'}
+];
+
+// ============================================================
+// DATA READERS
+// ============================================================
+function readLS(key){try{const r=localStorage.getItem(key);return r?JSON.parse(r):null}catch(e){return null}}
+function readWTD(){return readLS('wtd_v3')}
+function readSuite(){return readLS('suite_v2')}
+function readRestore(){return readLS('restore_v2')}
+function readChristmas(){return readLS('christmas_v2')}
+function getOp(){
+  const d=readLS('operator_v1');
+  return d||{apiKey:'',weeklyReviews:[],currentWeight:null,contextNotes:'',resetStartDate:null,resetChecks:{}};
+}
+function saveOp(d){localStorage.setItem('operator_v1',JSON.stringify(d))}
+
+// ============================================================
+// UTILITY
+// ============================================================
+function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dateKeyFrom(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function daysUntil(date){const n=new Date();n.setHours(0,0,0,0);const t=new Date(date);t.setHours(0,0,0,0);return Math.ceil((t-n)/(864e5))}
+function weekStart(date){const d=new Date(date);const day=d.getDay();d.setDate(d.getDate()-day+(day===0?-6:1));d.setHours(0,0,0,0);return d}
+function lbsToSt(lbs){const st=Math.floor(lbs/14);const lb=Math.round(lbs%14);return `${st}st ${lb}lb`}
+function parseWeight(v){if(!v)return null;if(typeof v==='number')return v;const s=String(v).toLowerCase().trim();const m=s.match(/(\d+)\s*st\s*(\d+)/);if(m)return parseInt(m[1])*14+parseInt(m[2]);const n=parseFloat(s);return isNaN(n)?null:n}
+function addDaysToDate(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
+
+// ============================================================
+// ANALYSERS
+// ============================================================
+function analyseWTD(){
+  const data=readWTD();if(!data)return{available:false};
+  const days=data.days||data;
+  let streak=0,d=new Date();
+  while(true){
+    const k=dateKeyFrom(d),day=days[k];
+    if(!day)break;
+    const dt=day.dayType||'normal';
+    if(dt==='ill'||dt==='holiday'){streak++;d.setDate(d.getDate()-1);continue}
+    const tasks=(day.tasks||[]).filter(t=>t&&t.text&&t.text.trim());
+    if(!tasks.length){d.setDate(d.getDate()-1);continue}
+    if(tasks.every(t=>t.done)){streak++;d.setDate(d.getDate()-1)}else break;
+  }
+  const ws=weekStart(new Date());let weekWon=0,weekLost=0,weekTotal=0;
+  for(let i=0;i<7;i++){
+    const wd=addDaysToDate(ws,i);if(wd>new Date())break;
+    const k=dateKeyFrom(wd),day=days[k];if(!day)continue;weekTotal++;
+    const dt=day.dayType||'normal';
+    if(dt==='holiday'){weekWon++;continue}if(dt==='ill')continue;
+    const tasks=(day.tasks||[]).filter(t=>t&&t.text&&t.text.trim());
+    if(!tasks.length)continue;
+    if(tasks.every(t=>t.done))weekWon++;else weekLost++;
+  }
+  let todayStatus='not set',todayTasks=[];
+  const td=days[todayKey()];
+  if(td){
+    const dt=td.dayType||'normal';
+    if(dt==='ill')todayStatus='ill day';
+    else if(dt==='holiday')todayStatus='holiday';
+    else{todayTasks=(td.tasks||[]).filter(t=>t&&t.text&&t.text.trim());todayStatus=todayTasks.length?`${todayTasks.filter(t=>t.done).length}/${todayTasks.length} done`:'no tasks set'}
+  }
+  let totalWon=0,totalDays=0;
+  Object.values(days).forEach(day=>{if(!day)return;totalDays++;const dt=day.dayType||'normal';if(dt==='holiday'){totalWon++;return}if(dt==='ill')return;const t=(day.tasks||[]).filter(t=>t&&t.text&&t.text.trim());if(t.length>0&&t.every(t=>t.done))totalWon++});
+  return{available:true,streak,weekWon,weekLost,weekTotal,todayStatus,todayTasks,totalWon,totalDays,winRate:totalDays?Math.round(totalWon/totalDays*100):0};
+}
+
+function analyseSuite(){
+  const data=readSuite();if(!data)return{available:false};
+  let latestWeight=null,weightHistory=[];
+  if(data.weights&&Array.isArray(data.weights)){
+    weightHistory=data.weights.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(weightHistory.length)latestWeight=parseWeight(weightHistory[0].value||weightHistory[0].weight);
+  }
+  const ws=weekStart(new Date());let goodDays=0,badDays=0;
+  if(data.calendar){for(let i=0;i<7;i++){const wd=addDaysToDate(ws,i);if(wd>new Date())break;const k=dateKeyFrom(wd);if(data.calendar[k]==='good')goodDays++;else if(data.calendar[k]==='bad')badDays++}}
+  let watchEntries=[];
+  if(data.watch&&Array.isArray(data.watch)){const wt=ws.getTime();watchEntries=data.watch.filter(w=>new Date(w.date).getTime()>=wt)}
+  return{available:true,latestWeight,weightHistory,goodDays,badDays,watchEntries};
+}
+
+function analyseRestore(){
+  const data=readRestore();if(!data)return{available:false};
+  const ws=weekStart(new Date()),wt=ws.getTime();let sessions={};
+  if(data.sessions&&Array.isArray(data.sessions)){data.sessions.filter(s=>new Date(s.date).getTime()>=wt).forEach(s=>{sessions[s.type]=(sessions[s.type]||0)+1})}
+  let latestTrack=null;if(data.tracks&&data.tracks.length)latestTrack=data.tracks[data.tracks.length-1];
+  let latestFlow=null;if(data.perrin&&data.perrin.length)latestFlow=data.perrin[data.perrin.length-1];
+  return{available:true,sessions,latestTrack,latestFlow};
+}
+
+function analyseChristmas(){
+  const data=readChristmas();if(!data)return{available:false};
+  return{available:true,aims:(data.aims||[]).map(a=>({name:a.name||a.title||'Unnamed',steps:a.steps||[],completed:(a.steps||[]).filter(s=>s.done||s.completed).length,total:(a.steps||[]).length,weightGate:a.weightGate||null,aiGenerated:a.aiGenerated||false}))};
+}
+
+function getCurrentWeight(){
+  const suite=analyseSuite();const op=getOp();
+  return(suite.available&&suite.latestWeight)?suite.latestWeight:(op.currentWeight||null);
+}
+
+// ============================================================
+// TABS & RENDER
+// ============================================================
+function renderTabs(){
+  document.getElementById('tabs').innerHTML=TABS.map(t=>`<button class="tab${t===currentTab?' active':''}" onclick="switchTab('${t}')">${t}</button>`).join('');
+}
+function switchTab(t){currentTab=t;renderTabs();renderContent()}
+function renderContent(){
+  const el=document.getElementById('content'),sub=document.getElementById('headerSub');
+  const renderers={Briefing:renderBriefing,Report:renderReport,Aims:renderAims,Reset:renderReset,Challenge:renderChallenge,Priority:renderPriority,'Other Side':renderOtherSide,Settings:renderSettings};
+  (renderers[currentTab]||renderBriefing)(el,sub);
+}
+
+// ============================================================
+// BRIEFING
+// ============================================================
+function renderBriefing(el,sub){
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const now=new Date();
+  sub.textContent=`${days[now.getDay()]} ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  const wtd=analyseWTD(),suite=analyseSuite(),restore=analyseRestore(),cw=getCurrentWeight();
+  const nextDeadline=DEADLINES.filter(d=>daysUntil(d.date)>0).sort((a,b)=>daysUntil(a.date)-daysUntil(b.date))[0];
+  const nextMilestone=cw?MILESTONES.find(m=>cw>m.lbs):null;
+  
+  // Weight trend
+  let weightTrend='';
+  if(suite.available&&suite.weightHistory&&suite.weightHistory.length>=2){
+    const latest=parseWeight(suite.weightHistory[0].value||suite.weightHistory[0].weight);
+    const prev=parseWeight(suite.weightHistory[1].value||suite.weightHistory[1].weight);
+    if(latest&&prev){
+      const diff=latest-prev;
+      if(diff<0)weightTrend=`<span style="color:var(--green)">↓${Math.abs(diff)} since last</span>`;
+      else if(diff>0)weightTrend=`<span style="color:var(--red)">↑${diff} since last</span>`;
+      else weightTrend=`<span style="color:var(--text3)">unchanged</span>`;
+    }
+  }
+
+  // Days since last weigh-in
+  let weighInNudge='';
+  if(suite.available&&suite.weightHistory&&suite.weightHistory.length>0){
+    const lastDate=new Date(suite.weightHistory[0].date);
+    const daysSince=Math.floor((now-lastDate)/864e5);
+    if(daysSince>7){
+      weighInNudge=`<div class="card" style="border-left:3px solid var(--red)">
+        <div class="card-sub" style="color:var(--red)">It's been ${daysSince} days since you weighed in. Avoiding the scales is a pattern — the number isn't the enemy, not knowing is. Step on, log it, move on.</div>
+      </div>`;
+    }
+  }
+
+  // Detect if in a slump (no sessions, bad food days)
+  let slumpWarning='';
+  if(restore.available&&Object.keys(restore.sessions).length===0&&suite.available&&suite.badDays>suite.goodDays){
+    slumpWarning=`<div class="card" style="border-left:3px solid var(--amber)">
+      <div class="card-title" style="color:var(--amber)">Pattern detected</div>
+      <div class="card-sub">No sessions logged and more bad food days than good this week. This is the start of a spiral you've seen before. The Reset tab has a 5-day protocol to catch it before it compounds. It takes 10 minutes on Day 1.</div>
+      <button class="btn btn-outline" style="margin-top:8px;border-color:var(--amber);color:var(--amber)" onclick="switchTab('Reset')">Open Reset protocol</button>
+    </div>`;
+  }
+
+  el.innerHTML=`
+    ${slumpWarning}
+    ${weighInNudge}
+    <div class="card">
+      <div class="card-label">Today</div>
+      <div class="card-value gold">${wtd.available?wtd.todayStatus:'WTD not connected'}</div>
+      ${wtd.available?`<div class="card-sub">Streak: ${wtd.streak} day${wtd.streak!==1?'s':''} · This week: ${wtd.weekWon} won, ${wtd.weekLost} lost</div>`:''}
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num">${cw?lbsToSt(cw):'—'}</div><div class="stat-label">Current weight</div>${weightTrend?`<div style="font-size:11px;margin-top:2px">${weightTrend}</div>`:''}</div>
+      <div class="stat-box"><div class="stat-num">${nextDeadline?daysUntil(nextDeadline.date):'—'}</div><div class="stat-label">${nextDeadline?'days · '+nextDeadline.name:'—'}</div></div>
+      <div class="stat-box"><div class="stat-num">${cw?Math.round(cw-162):'—'}</div><div class="stat-label">lbs to target</div></div>
+      <div class="stat-box"><div class="stat-num">${wtd.available?wtd.winRate+'%':'—'}</div><div class="stat-label">WTD win rate</div></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="card-title">Deadlines</div>
+      ${DEADLINES.map(d=>{const dy=daysUntil(d.date);return`<div class="deadline-row"><div><div class="deadline-name">${d.icon} ${d.name}</div><div class="deadline-date">${d.date.getDate()}/${d.date.getMonth()+1}/${d.date.getFullYear()}</div></div><div class="deadline-days ${dy<30?'urgent':dy<90?'soon':'ok'}">${dy>0?dy+' days':'Today!'}</div></div>`}).join('')}
+    </div>
+    ${nextMilestone?`<div class="card"><div class="card-title">Next milestone</div><div class="card-value">${nextMilestone.st}</div><div class="card-sub">${nextMilestone.label} · ${Math.round(cw-nextMilestone.lbs)} lbs to go</div></div>`:''}
+    ${restore.available&&Object.keys(restore.sessions).length>0?`<div class="card"><div class="card-title">Sessions this week</div>${Object.entries(restore.sessions).map(([k,v])=>`<div class="report-row"><span class="label">${k}</span><span class="value">${v}</span></div>`).join('')}</div>`:''}
+    <div class="moment-btn" onclick="openMoment()" style="margin-top:6px">
+      <div class="moment-btn-icon">⚡</div>
+      <div class="moment-btn-text">In The Moment</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px">Tap when you're about to make the decision</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// REPORT
+// ============================================================
+function renderReport(el,sub){
+  sub.textContent='Weekly summary';
+  const wtd=analyseWTD(),suite=analyseSuite(),restore=analyseRestore();
+  el.innerHTML=`
+    <div class="card"><div class="report-header">Win The Day</div>${wtd.available?`
+      <div class="report-row"><span class="label">Days won this week</span><span class="value ${wtd.weekWon>=5?'good':wtd.weekWon>=3?'neutral':'bad'}">${wtd.weekWon}/${wtd.weekTotal}</span></div>
+      <div class="report-row"><span class="label">Days lost</span><span class="value ${wtd.weekLost===0?'good':'bad'}">${wtd.weekLost}</span></div>
+      <div class="report-row"><span class="label">Current streak</span><span class="value">${wtd.streak}</span></div>
+      <div class="report-row"><span class="label">Win rate</span><span class="value">${wtd.winRate}%</span></div>
+    `:`<div class="card-sub">Open WTD on this device first.</div>`}</div>
+    <div class="card"><div class="report-header">Diet & Weight</div>${suite.available?`
+      <div class="report-row"><span class="label">Good food days</span><span class="value ${suite.goodDays>=5?'good':suite.goodDays>=3?'neutral':'bad'}">${suite.goodDays}</span></div>
+      <div class="report-row"><span class="label">Bad food days</span><span class="value ${suite.badDays===0?'good':'bad'}">${suite.badDays}</span></div>
+      <div class="report-row"><span class="label">Latest weight</span><span class="value">${suite.latestWeight?lbsToSt(suite.latestWeight):'Not logged'}</span></div>
+      ${suite.latestWeight?`<div class="report-row"><span class="label">From start (13st 9)</span><span class="value ${suite.latestWeight<START_WEIGHT?'good':'bad'}">${suite.latestWeight<START_WEIGHT?'↓':'↑'} ${Math.abs(suite.latestWeight-START_WEIGHT)} lbs</span></div>`:''}
+    `:`<div class="card-sub">Open Suite on this device first.</div>`}</div>
+    <div class="card"><div class="report-header">Recovery & Training</div>${restore.available?`
+      ${Object.keys(restore.sessions).length?Object.entries(restore.sessions).map(([k,v])=>`<div class="report-row"><span class="label">${k}</span><span class="value">${v}</span></div>`).join(''):`<div class="card-sub" style="color:var(--red)">No sessions logged this week</div>`}
+      ${restore.latestTrack?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)">
+        <div class="report-row"><span class="label">Energy</span><span class="value">${restore.latestTrack.energy||'—'}/10</span></div>
+        <div class="report-row"><span class="label">Brain fog</span><span class="value">${restore.latestTrack.brainFog||restore.latestTrack.brainfog||'—'}/10</span></div>
+        <div class="report-row"><span class="label">Chest congestion</span><span class="value">${restore.latestTrack.chest||restore.latestTrack.chestCongestion||'—'}/10</span></div>
+      </div>`:''}
+      ${restore.latestFlow?`<div class="report-row"><span class="label">Flow rate</span><span class="value">${restore.latestFlow.rate||restore.latestFlow.value||'—'}/14</span></div>`:''}
+    `:`<div class="card-sub">Open Restore on this device first.</div>`}</div>
+    <button class="btn btn-outline" onclick="saveWeeklySnapshot()">Save this week's report</button>
+    ${renderPastReports()}
+  `;
+}
+
+function renderPastReports(){
+  const op=getOp();
+  if(!op.weeklyReviews||!op.weeklyReviews.length)return'';
+  return`<div class="card" style="margin-top:10px"><div class="card-title">Past Reports</div>${op.weeklyReviews.slice(-8).reverse().map(r=>`<div class="report-row"><span class="label">${r.weekOf||r.date}</span><span class="value">${r.wtdWon!=null?r.wtdWon:'-'}/${r.wtdTotal||'?'} WTD · ${r.weight?lbsToSt(r.weight):'—'}</span></div>`).join('')}</div>`;
+}
+
+function saveWeeklySnapshot(){
+  const wtd=analyseWTD(),suite=analyseSuite(),restore=analyseRestore(),op=getOp();
+  const wk=dateKeyFrom(weekStart(new Date()));
+  if(op.weeklyReviews.some(r=>r.weekOf===wk)){alert('Already saved');return}
+  op.weeklyReviews.push({weekOf:wk,date:new Date().toLocaleDateString('en-GB'),wtdWon:wtd.available?wtd.weekWon:null,wtdTotal:wtd.available?wtd.weekTotal:null,weight:suite.available?suite.latestWeight:null,goodDays:suite.available?suite.goodDays:null,badDays:suite.available?suite.badDays:null,sessions:restore.available?restore.sessions:{}});
+  saveOp(op);renderContent();
+}
+
+// ============================================================
+// AIMS
+// ============================================================
+function renderAims(el,sub){
+  sub.textContent='14 aims from Christmas';
+  const christmas=analyseChristmas(),cw=getCurrentWeight();
+  if(!christmas.available||!christmas.aims.length){el.innerHTML=`<div class="empty">Christmas app data not found.<br>Open it on this device first.</div>`;return}
+  let complete=christmas.aims.filter(a=>a.completed===a.total&&a.total>0).length;
+  let inProg=christmas.aims.filter(a=>a.completed>0&&a.completed<a.total).length;
+  let html=`<div class="stat-grid"><div class="stat-box"><div class="stat-num">${complete}</div><div class="stat-label">Complete</div></div><div class="stat-box"><div class="stat-num">${inProg}</div><div class="stat-label">In progress</div></div></div>`;
+  christmas.aims.forEach(aim=>{
+    const pct=aim.total?Math.round(aim.completed/aim.total*100):0;
+    let status='stalled',sLabel='Stalled',color='var(--red)';
+    if(pct===100){status='complete';sLabel='Done';color='var(--green)'}
+    else if(pct>0){status='moving';sLabel='Moving';color='var(--teal)'}
+    let gateBlocked=false;
+    if(aim.weightGate&&cw){const gw=parseWeight(aim.weightGate);if(gw&&cw>gw){gateBlocked=true;status='blocked';sLabel='Weight-gated';color='var(--amber)'}}
+    html+=`<div class="card"><div style="font-size:14px;color:var(--text)">${aim.name}<span class="aim-status ${status}">${sLabel}</span></div><div class="aim-progress"><div class="aim-bar-bg"><div class="aim-bar-fill" style="width:${pct}%;background:${color}"></div></div><div class="aim-pct">${aim.completed}/${aim.total}</div></div>${gateBlocked?`<div class="aim-gate">🔒 Unlocks at ${aim.weightGate}</div>`:''}</div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ============================================================
+// RESET TAB — Bounce Back Protocol
+// ============================================================
+function renderReset(el,sub){
+  sub.textContent='5-day bounce back';
+  const op=getOp();
+  
+  // Calculate which day of reset we're on
+  let resetDay=0;
+  if(op.resetStartDate){
+    const start=new Date(op.resetStartDate);
+    const now=new Date();start.setHours(0,0,0,0);now.setHours(0,0,0,0);
+    resetDay=Math.floor((now-start)/864e5);
+  }
+
+  let html=`
+    <div class="moment-btn" onclick="openMoment()">
+      <div class="moment-btn-icon">⚡</div>
+      <div class="moment-btn-text">In The Moment</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px">Tap when you're about to make the decision</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">When everything falls apart</div>
+      <div class="card-sub">This is not motivation. This is a mechanical sequence. You don't need to feel ready, feel strong, or feel like you deserve to try again. You just need to do Day 1. Each day adds one thing. By Day 5 you're back in the system. The thread reconnects.<br><br>
+      The pattern you know: diet goes → everything goes → shame compounds → you feel too far behind → weeks pass. This protocol intercepts that spiral on Day 1.</div>
+    </div>
+    
+    ${!op.resetStartDate?`<button class="btn btn-gold" onclick="startReset()">Start the 5-day reset</button>`:`
+      <div class="card" style="border:1px solid var(--gold-faint)">
+        <div class="card-sub">Reset started ${new Date(op.resetStartDate).toLocaleDateString('en-GB')} · ${resetDay<5?`Day ${resetDay+1} of 5`:'Complete'}</div>
+        <button class="btn btn-outline" style="margin-top:8px;font-size:13px" onclick="if(confirm('Start a fresh reset?')){const o=getOp();o.resetStartDate=null;o.resetChecks={};saveOp(o);renderContent()}">Restart</button>
+      </div>
+    `}
+  `;
+
+  RESET_STEPS.forEach((step,i)=>{
+    const isToday=op.resetStartDate&&resetDay===i;
+    const isPast=op.resetStartDate&&resetDay>i;
+    const checked=op.resetChecks&&op.resetChecks[i];
+    html+=`<div class="reset-step ${isToday?'active-step':''}">
+      <div class="reset-step-day">${step.day}${isToday?' — TODAY':isPast&&checked?' ✓':''}</div>
+      <div class="reset-step-title">${step.title}</div>
+      <div class="reset-step-detail">${step.detail}</div>
+      <div style="margin-top:6px;padding:6px 8px;background:var(--bg);border-radius:6px;font-size:12px;color:var(--gold-dim)">${step.action}</div>
+      ${(isToday||isPast)?`<div class="reset-step-check"><input type="checkbox" id="rc${i}" ${checked?'checked':''} onchange="toggleResetCheck(${i})"><label for="rc${i}">Done</label></div>`:''}
+    </div>`;
+  });
+
+  // Post-reset guidance
+  html+=`
+    <div class="card" style="margin-top:12px">
+      <div class="card-title">After the reset</div>
+      <div class="card-sub">Day 6 onwards is not a new plan. It's your existing plan from Phase 1 — the one that had you at 95% consistency before the disruption. You're not starting over. You're picking up a thread that was set down, not broken.<br><br>
+      The critical insight: every time you complete this reset, the next disruption gets shorter. Not because you've become mentally stronger, but because you've rehearsed the recovery. The bounce-back becomes the habit, not the perfection.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">What to tell yourself</div>
+      <div class="card-sub">The diet went because your SNS was overwhelmed — heat, grief, family, property, exhaustion. That is not a character assessment. That is a nervous system doing what overwhelmed nervous systems do: reaching for the fastest dopamine available. You don't need more willpower. You need to reduce the load and restart the structure. That is what this protocol does.</div>
+    </div>
+  `;
+
+  el.innerHTML=html;
+}
+
+function startReset(){
+  const op=getOp();
+  op.resetStartDate=new Date().toISOString();
+  op.resetChecks={};
+  saveOp(op);
+  renderContent();
+}
+
+function toggleResetCheck(i){
+  const op=getOp();
+  if(!op.resetChecks)op.resetChecks={};
+  op.resetChecks[i]=!op.resetChecks[i];
+  saveOp(op);
+}
+
+// ============================================================
+// CHALLENGE (AI)
+// ============================================================
+function renderChallenge(el,sub){
+  sub.textContent='AI accountability';
+  const op=getOp();
+  const chips=['ME/CFS','Home gym','Sauna','Past failures','10k steps','Be realistic',"At mum's house",'Diet collapsed','Property work','Grief/family','Low confidence','Weight gain','Stag deadlines','SNS dominant','Need structure','Bounce back mode'];
+  el.innerHTML=`
+    <div class="card"><div class="card-title">Honest review</div><div class="card-sub">The AI reads your real app data and challenges you specifically. Not generic motivation — data-backed, pattern-aware pushback that knows about ME, your nervous system, and your actual situation.</div></div>
+    <div class="ai-prompt-area">
+      <textarea id="aiPrompt" placeholder="What's happening? What went well? What didn't?">${op.contextNotes||''}</textarea>
+      <div class="chips">${chips.map(c=>`<span class="chip" onclick="this.classList.toggle('selected')">${c}</span>`).join('')}</div>
+    </div>
+    <button class="btn btn-gold" id="challengeBtn" onclick="runChallenge()" ${!op.apiKey?'disabled':''}>${!op.apiKey?'Set API key in Settings':'Challenge me'}</button>
+    <div id="aiResponseArea"></div>
+    ${renderPastChallenges()}
+  `;
+}
+
+function renderPastChallenges(){
+  const op=getOp();
+  const past=(op.weeklyReviews||[]).filter(r=>r.aiResponse);
+  if(!past.length)return'';
+  return`<div class="card" style="margin-top:12px"><div class="card-title">Past challenges</div>${past.slice(-4).reverse().map(r=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="font-size:11px;color:var(--text3)">${r.date||r.weekOf}</div><div style="font-size:13px;color:var(--text2);margin-top:3px">${(r.aiResponse||'').substring(0,100)}...</div></div>`).join('')}</div>`;
+}
+
+async function runChallenge(){
+  const op=getOp();if(!op.apiKey)return;
+  const prompt=document.getElementById('aiPrompt').value;
+  const chips=[...document.querySelectorAll('.chip.selected')].map(c=>c.textContent);
+  const area=document.getElementById('aiResponseArea'),btn=document.getElementById('challengeBtn');
+  op.contextNotes=prompt;saveOp(op);
+  btn.disabled=true;btn.textContent='Thinking...';
+  area.innerHTML=`<div class="ai-loading">Reading your data<span class="dots"></span></div>`;
+  const wtd=analyseWTD(),suite=analyseSuite(),restore=analyseRestore(),christmas=analyseChristmas();
+  const dataCtx=`
+REAL APP DATA (not self-reported — actual logged data):
+WTD: ${wtd.available?`Streak: ${wtd.streak}. Week: ${wtd.weekWon} won/${wtd.weekTotal}. Overall: ${wtd.totalWon}/${wtd.totalDays} (${wtd.winRate}%).`:'No data.'}
+DIET: ${suite.available?`Weight: ${suite.latestWeight?lbsToSt(suite.latestWeight):'not logged'}. Start: 13st 9 (191lbs). Target: 11st 12 (162lbs). Food: ${suite.goodDays} good/${suite.badDays} bad days. Watch: ${suite.watchEntries.length} entries.`:'No data.'}
+SESSIONS: ${restore.available?`${Object.keys(restore.sessions).length?Object.entries(restore.sessions).map(([k,v])=>`${k}:${v}`).join(', '):'ZERO sessions.'} ${restore.latestTrack?`Energy:${restore.latestTrack.energy||'?'}/10 Fog:${restore.latestTrack.brainFog||'?'}/10 Chest:${restore.latestTrack.chest||'?'}/10`:''} ${restore.latestFlow?`Flow:${restore.latestFlow.rate||restore.latestFlow.value||'?'}/14`:''}`:'No data.'}
+AIMS: ${christmas.available?`${christmas.aims.filter(a=>a.completed===a.total&&a.total>0).length} done, ${christmas.aims.filter(a=>a.completed>0&&a.completed<a.total).length} moving, ${christmas.aims.filter(a=>a.completed===0).length} not started.`:'No data.'}
+DEADLINES: ${DEADLINES.map(d=>`${d.name}: ${daysUntil(d.date)} days`).join('. ')}.
+RESET: ${op.resetStartDate?`Started ${new Date(op.resetStartDate).toLocaleDateString('en-GB')}`:'Not active.'}`;
+
+  const sysPrompt=`You are The Operator — James's AI accountability partner. You have his REAL tracked data. Context: 45yo male, 5ft11, Altrincham. ME/CFS ~10 years, SNS-dominant. Pharmacist background, works in property. Perrin Technique treatment. Home gym: cross trainer, sauna, dumbbells. Key deadlines: John's stag (London Oct, Dublin Nov 2026), wedding Jan 2027. The plan uses STRUCTURE not willpower — willpower fails with SNS-dominant ME. No calorie counting (cognitive load = SNS trigger). Three diet patterns: post-disruption collapse, emotional/SNS eating, morning-after alcohol. Gran Canaria is the reward for target weight.
+
+YOUR SPECIFIC PATTERNS TO WATCH FOR IN HIS DATA:
+1. ALL-OR-NOTHING: When one thing slips, everything goes. Challenge this directly - one bad week doesn't erase a good month.
+2. SHAME SPIRAL: Weight gain → shame → avoidance → more weight gain. Interrupt this — the data is the data, it doesn't judge.
+3. STRUCTURAL vs WILLPOWER confusion: If he's blaming himself for lacking discipline, redirect to structural fixes (environment, pre-decisions, friction).
+4. OVERLOAD BLINDNESS: He takes on too much (property + family + health + apps) then is surprised when something gives. Name this when you see it.
+
+Be honest, specific, data-backed. Challenge on gaps between stated priorities and logged actions. But recognise when circumstances genuinely explain the gap. Ask ONE specific question requiring an honest answer. Under 300 words. Conversational, direct. Like a trusted friend with all his data.
+
+Context chips: ${chips.join(', ')||'none'}`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sysPrompt,messages:[{role:'user',content:`Data:\n${dataCtx}\n\nMy update:\n${prompt||'Just challenge me based on the data.'}`}]})});
+    const data=await r.json();let txt='';
+    if(data.content)txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('\n');
+    else if(data.error)txt=`Error: ${data.error.message||'Check API key.'}`;
+    area.innerHTML=`<div class="ai-response">${txt.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('')}</div>`;
+    const wk=dateKeyFrom(weekStart(new Date()));
+    let ex=op.weeklyReviews.find(r=>r.weekOf===wk);
+    if(ex){ex.aiResponse=txt}else{op.weeklyReviews.push({weekOf:wk,date:new Date().toLocaleDateString('en-GB'),aiResponse:txt})}
+    saveOp(op);
+  }catch(err){area.innerHTML=`<div class="ai-response"><p>Error: ${err.message}</p></div>`}
+  btn.disabled=false;btn.textContent='Challenge me';
+}
+
+// ============================================================
+// PRIORITY
+// ============================================================
+function renderPriority(el,sub){
+  sub.textContent='What matters most right now';
+  const suite=analyseSuite(),restore=analyseRestore(),cw=getCurrentWeight();
+  let priorities=[];
+  if(cw&&cw>162){
+    const toGo=Math.round(cw-162);
+    const nd=DEADLINES.filter(d=>daysUntil(d.date)>0)[0];
+    const wks=nd?Math.floor(daysUntil(nd.date)/7):null;
+    priorities.push({title:'Lose weight — the foundation',why:`${toGo} lbs to target (${lbsToSt(cw)} → 11st 12).${wks?` ${wks} weeks to ${nd.name}. At 1-2 lbs/week, that's ${wks} to ${wks*2} lbs — enough to make a visible difference.`:''} This isn't vanity. Fat compresses your lymphatic vessels and produces inflammatory cytokines. Every pound lost directly improves ME.`});
+  }
+  if(restore.available){
+    const ct=restore.sessions['Cross trainer']||restore.sessions['cross trainer']||0;
+    if(ct<3)priorities.push({title:'Cross trainer — 3x this week',why:`${ct} sessions so far. This is the highest-value activity you have. Zone 2, 15 minutes, conversational pace. Burns fat, improves vagal tone, pumps lymphatics, calms SNS. All four simultaneously. It should feel too easy.`});
+    const sa=restore.sessions['Sauna']||restore.sessions['sauna']||0;
+    if(sa<3)priorities.push({title:'Use the sauna — you own it',why:`${sa} sessions. You have a sauna in your house. Post cross-trainer is ideal. 15-20 minutes. One of the best SNS-calming tools that exists. Cold finish on trunk and limbs only — never above shoulders.`});
+  }else{
+    priorities.push({title:'Start logging in Restore',why:"You can't improve what you don't track. Log every session. The Operator can only challenge what it can see."});
+  }
+  if(suite.available&&suite.badDays>2){
+    priorities.push({title:'Stop the diet bleed',why:`${suite.badDays} bad food days. One rule: protein at every meal. That single rule reduces cravings and sets appetite tone. Don't fix everything — fix breakfast.`});
+  }
+  if(!priorities.length)priorities.push({title:'Stay consistent',why:"The data says you're doing the work. Boring consistency compounds. You need 12 more weeks of this, not a dramatic change."});
+
+  el.innerHTML=`<div class="card"><div class="card-sub">Based on your data, deadlines, and weight — in order of impact.</div></div>
+    ${priorities.map((p,i)=>`<div class="priority-card"><div class="priority-num">${i+1}</div><div class="priority-title">${p.title}</div><div class="priority-why">${p.why}</div></div>`).join('')}
+    <div class="card"><div class="card-title">Remember</div><div class="card-sub">Weight loss and ME recovery share the same mechanisms. Every intervention above does double duty. You haven't failed repeatedly — you've used the wrong architecture. Structure works when willpower can't.</div></div>`;
+}
+
+// ============================================================
+// OTHER SIDE — The maintenance vision
+// ============================================================
+function renderOtherSide(el,sub){
+  sub.textContent='What life looks like at target';
+  const cw=getCurrentWeight();
+  const toGo=cw?Math.round(cw-162):null;
+
+  el.innerHTML=`
+    <div class="vision-card">
+      <div class="vision-title">The burden lifts</div>
+      <div class="vision-body">Right now you carry a daily weight that has nothing to do with the scales — the calorie deficit, the guilt when you eat something wrong, the shame when clothes don't fit, the feeling that you're always behind. That is the real weight.<br><br>
+      At 11st 12, all of that stops. The deficit ends. The guilt ends. The project is complete. All you need to do from that point is maintain — and maintaining is fundamentally different from losing. It is easier, simpler, and it doesn't require the daily grind you're in now.</div>
+    </div>
+
+    <div class="vision-contrast">
+      <div class="vision-now"><strong>Now (losing)</strong>Calorie deficit<br>Constant vigilance<br>Guilt when off-plan<br>Clothes don't fit<br>Avoiding scales<br>Daily mental load<br>Feeling behind</div>
+      <div class="vision-then"><strong>At target (maintaining)</strong>Eat normally<br>Simple habits<br>Occasional treats are fine<br>Clothes fit and feel good<br>Scales confirm, not judge<br>Automatic, not effortful<br>Confidence back</div>
+    </div>
+
+    <div class="vision-card" style="margin-top:10px">
+      <div class="vision-title">What maintenance actually looks like</div>
+      <div class="vision-body">Protein at every meal — you'll be doing this already. Keep the 10,000 steps — it's a habit by then. Cross trainer 2-3x per week because you enjoy how it feels, not because you have to. Weigh yourself weekly as a check, not a judgment. Eat out, have beers with John, enjoy travel food — because you have a buffer and a system that self-corrects within 48 hours.<br><br>
+      The banned foods list in Suite can relax. Cheese and nuts come back. The odd takeaway is fine. The rigid rules were scaffolding for the build — once the building is up, most of the scaffolding comes down.</div>
+    </div>
+
+    <div class="vision-card">
+      <div class="vision-title">Gran Canaria</div>
+      <div class="vision-body">The reward for getting there. A solo trip to the place where your body measurably recovers — your Perrin practitioner noticed it unprompted. Your booking, your schedule, no obligations. Not a holiday. Treatment. You will have earned it.<br><br>
+      You'll walk to the beach at the weight you want to be. You'll eat local food without guilt. You'll sit in the sun and your SNS will actually switch off — not be managed, but genuinely off. The lymphatic system, free of SNS suppression, will drain properly. You'll come home lighter in every sense.</div>
+    </div>
+
+    ${toGo?`<div class="card">
+      <div class="card-title">${toGo} lbs</div>
+      <div class="card-sub">That's all that stands between now and everything above. ${toGo} lbs at 1-2 lbs per week is ${Math.ceil(toGo/2)} to ${toGo} weeks. It's not years. It's not impossible. It's a finite project with an end date, and the end date unlocks a version of your life where this daily burden simply doesn't exist anymore.</div>
+    </div>`:'<div class="card"><div class="card-sub">Enter your current weight in Settings to see how close you are.</div></div>'}
+
+    <div class="card">
+      <div class="card-title">The weight you've gained is not permanent</div>
+      <div class="card-sub">Weight gained during a period of disruption is not the same as weight that took years to accumulate. A significant portion is water retention from higher carbs, sodium, and alcohol — not fat. When you restart the structure, the first 3-5 lbs will come off within days as water normalises. That fast early drop is real and visible. It's the system resetting, not a trick.<br><br>
+      The additional actual fat gain from a few weeks of poor eating is much less than it feels. 1 lb of fat requires a 3,500 kcal surplus. Even a genuinely bad couple of weeks rarely adds more than 2-3 lbs of actual fat. The rest is water, glycogen, and gut content. It feels catastrophic. It isn't.</div>
+    </div>
+
+    <div class="vision-card">
+      <div class="vision-title">Two versions of every moment</div>
+      <div class="vision-body">Everything you do already — the pub, the holiday, seeing friends — you'll still do all of it at 11st 12. But every single one feels different.</div>
+    </div>
+
+    <div class="vision-contrast">
+      <div class="vision-now"><strong>Beer with John — now</strong>Guilt with every sip. Knowing it's another step backward. Clothes feel tight. Dreading the scales tomorrow. The beer tastes like failure.</div>
+      <div class="vision-then"><strong>Beer with John — at target</strong>You earned this. The beer is just a beer. Back on the cross trainer Tuesday without thinking twice. No guilt. No internal negotiation. Just a good night.</div>
+    </div>
+
+    <div class="vision-contrast">
+      <div class="vision-now"><strong>Holiday — now</strong>Uncomfortable at the pool. Avoiding photos. Not fully present because part of your head is on what you look like, what you're eating, what damage this week will do. The holiday is shadowed.</div>
+      <div class="vision-then"><strong>Holiday — at target</strong>Genuinely happy. Present. Walking to the beach feeling right. Eating local food without guilt. Taking photos you actually want to keep. The holiday is just a holiday — not something to recover from.</div>
+    </div>
+
+    <div class="vision-contrast">
+      <div class="vision-now"><strong>Seeing friends — now</strong>Wondering if they've noticed the weight. Self-conscious walking in. Comparing yourself. The voice in your head narrating how you look rather than letting you enjoy who you're with.</div>
+      <div class="vision-then"><strong>Seeing friends — at target</strong>Walking in feeling like yourself. Not thinking about it at all. Just being there — fully — with people you care about. The weight is not part of the conversation, not even the one in your head.</div>
+    </div>
+
+    <div class="vision-card">
+      <div class="vision-title" style="color:var(--gold)">Same life. Different experience.</div>
+      <div class="vision-body">You're not trying to become someone else or live a different life. You're trying to experience the life you already have without the filter of guilt, shame, and self-consciousness that the weight puts over everything. At 11st 12, the filter comes off. The pub, the holiday, the friends — they're all still there. They just feel the way they're supposed to feel.</div>
+    </div>
+
+    <div class="vision-card">
+      <div class="vision-title">The one thing you can control</div>
+      <div class="vision-body">There are things in your life right now that are heavy and that you cannot fix — not today, maybe not for a long time. Your body and your health are not one of those things. This is something you can move, something where effort actually produces results, something where the finish line is real and reachable. Not everything has to be solved at once. But this one thing — getting to the weight where you feel like yourself again — this is yours to do. And doing it doesn't just change how you look. It changes how much capacity you have for everything else.</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettings(el,sub){
+  sub.textContent='Configuration';
+  const op=getOp();
+  el.innerHTML=`
+    <div class="card">
+      <div class="card-title">Claude API Key</div>
+      <div class="card-sub" style="margin-bottom:8px">For the Challenge feature. Stored on your device only.</div>
+      <input type="password" class="setting-input" id="apiKeyInput" value="${op.apiKey||''}" placeholder="sk-ant-...">
+      <button class="btn btn-outline" style="margin-top:8px" onclick="const o=getOp();o.apiKey=document.getElementById('apiKeyInput').value.trim();saveOp(o);alert('Saved');renderContent()">Save key</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Manual Weight</div>
+      <div class="card-sub" style="margin-bottom:8px">If Suite isn't logging weight.</div>
+      <input type="text" class="setting-input" id="manualWt" value="${op.currentWeight?lbsToSt(op.currentWeight):''}" placeholder="13st 4">
+      <button class="btn btn-outline" style="margin-top:8px" onclick="const v=parseWeight(document.getElementById('manualWt').value);if(v&&v>100&&v<300){const o=getOp();o.currentWeight=v;saveOp(o);alert('Saved: '+lbsToSt(v));renderContent()}else{alert('Format: 13st 4 or 186')}">Save</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Connected Apps</div>
+      <div class="report-row"><span class="label">WTD</span><span class="value ${readWTD()?'good':'bad'}">${readWTD()?'✓ Connected':'✗ Not found'}</span></div>
+      <div class="report-row"><span class="label">Suite</span><span class="value ${readSuite()?'good':'bad'}">${readSuite()?'✓ Connected':'✗ Not found'}</span></div>
+      <div class="report-row"><span class="label">Restore</span><span class="value ${readRestore()?'good':'bad'}">${readRestore()?'✓ Connected':'✗ Not found'}</span></div>
+      <div class="report-row"><span class="label">Christmas</span><span class="value ${readChristmas()?'good':'bad'}">${readChristmas()?'✓ Connected':'✗ Not found'}</span></div>
+      <div class="card-sub" style="margin-top:8px">Same patalavaca.github.io domain = automatic connection. Open each app once on this device.</div>
+    </div>
+    <div class="card"><div class="card-title">About</div><div class="card-sub">The Operator v2.0 · Command centre.<br>Reads real data. Detects patterns. Challenges honestly.<br>Built June 2026.</div></div>
+    <button class="btn btn-outline" style="border-color:var(--red-dim);color:var(--red)" onclick="if(confirm('Clear all Operator data?')){localStorage.removeItem('operator_v1');renderContent()}">Reset Operator</button>
+  `;
+}
+
+// ============================================================
+// IN THE MOMENT
+// ============================================================
+function openMoment(){
+  // Populate deadline text dynamically
+  const cw=getCurrentWeight();
+  const nd=DEADLINES.filter(d=>daysUntil(d.date)>0).sort((a,b)=>daysUntil(a.date)-daysUntil(b.date))[0];
+  let txt='';
+  if(nd)txt+=`${nd.name} is ${daysUntil(nd.date)} days away. `;
+  if(cw)txt+=`You're ${lbsToSt(cw)} — ${Math.round(cw-162)} lbs from target. `;
+  txt+='Every good decision between now and then compounds. Every one. This one counts.';
+  document.getElementById('momentDeadlineText').textContent=txt;
+  document.getElementById('momentOverlay').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function closeMoment(){
+  document.getElementById('momentOverlay').style.display='none';
+  document.body.style.overflow='';
+}
+
+// ============================================================
+// BACKUP
+// ============================================================
+function toggleBackup(){const o=document.getElementById('backupOverlay');o.style.display=o.style.display==='none'?'block':'none'}
+function exportData(){const d=localStorage.getItem('operator_v1')||'{}';const c=btoa(unescape(encodeURIComponent(d)));const a=document.getElementById('backupArea');a.style.display='block';a.value=c;a.select();try{navigator.clipboard.writeText(c)}catch(e){}}
+function promptImport(){const c=prompt('Paste backup code:');if(!c)return;try{const d=decodeURIComponent(escape(atob(c)));JSON.parse(d);localStorage.setItem('operator_v1',d);alert('Imported');renderContent();toggleBackup()}catch(e){alert('Invalid code')}}
+
+// INIT
+renderTabs();renderContent();
+</script>
+</body>
+</html>
