@@ -109,6 +109,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .vision-then{background:var(--green-faint);color:var(--green)}
 .vision-now strong,.vision-then strong{display:block;margin-bottom:4px;font-size:13px}
 /* IN THE MOMENT */
+/* DAILY TRUTH */
+.truth-card{background:linear-gradient(135deg,#1a1a0a,var(--bg2));border:1px solid var(--gold-faint);border-radius:14px;padding:20px 16px;margin-bottom:12px;cursor:pointer;text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.truth-text{font-family:var(--font-display);font-size:16px;color:var(--gold);line-height:1.5;font-weight:600}
+.truth-tap{font-size:11px;color:var(--text3);margin-top:8px}
 .moment-btn{background:linear-gradient(135deg,#1a1a0a,var(--bg2));border:2px solid var(--gold);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;text-align:center;transition:all 0.2s}
 .moment-btn:active{transform:scale(0.98);background:var(--gold-faint)}
 .moment-btn-icon{font-size:28px;margin-bottom:4px}
@@ -218,6 +222,61 @@ const RESET_STEPS=[
   {day:'Day 4',title:'Clear the environment',detail:'Go through the kitchen. Remove or finish the trigger foods — crisps, chocolate, whatever accumulated during the disruption. Not because you are weak, but because keeping them there costs you a decision every time you walk past. Remove the decision.',action:'Steps + kitchen reset + cross trainer + sauna'},
   {day:'Day 5',title:'Log everything',detail:'Open WTD and set 5 tasks for today. Open Suite and mark today on the food calendar. Open Restore and log your sessions. The thread is no longer broken — you are back in the system. The apps can see you again. The Operator can see you again.',action:'Full routine: steps + WTD + Suite + Restore + cross trainer + sauna'}
 ];
+
+// ============================================================
+// DAILY TRUTHS
+// ============================================================
+const TRUTHS=[
+  "Are you going to let a chocolate bar or a beer ruin your life today?",
+  "The people who aren't rooting for you would love nothing more than you being weak with your diet today.",
+  "Next time you see your friends — are you walking in feeling fat and self-conscious, or feeling like yourself? Today decides.",
+  "Once the weight is gone, it's gone. No more calorie deficit. No more guilt. No more daily battle. Just maintenance. Get there.",
+  "Beach holiday. Are you enjoying it or hiding from it? Today's choices decide which version you get.",
+  "City break with Heike. Are you present and enjoying it, or spending the whole trip thinking about what you look like? Choose now.",
+  "Type 2 diabetes doesn't announce itself. It arrives quietly while you're telling yourself you'll start Monday.",
+  "Every pound of fat is compressing your lymphatic system. Your ME is literally harder to manage at this weight. This isn't vanity. This is treatment.",
+  "John's wedding photos will exist forever. Which version of you is in them?",
+  "Same beer, same pub. But one version of you enjoys it guilt-free because he's earned it. The other knows it's another step backward. Today decides which one you are.",
+  "When you set your mind to a project, you deliver. The patio. Dad's things. The garage. The property business. This is just another project. Apply the same focus.",
+  "The clothes in your wardrobe haven't changed. Your body has. Every good day brings you closer to fitting them again.",
+  "Nobody at 11st 12 has ever regretted the discipline it took to get there. Everyone at 13+ stone regrets not starting sooner.",
+  "Your nervous system is reaching for dopamine because it's exhausted. That's not hunger. That's not a choice. Recognise the difference.",
+  "Gran Canaria. Solo. At target weight. Sun, sea, no obligations. Your body recovering the way your Perrin practitioner noticed. You haven't earned it yet.",
+  "The shame spiral works like this: eat badly → feel guilty → eat more to cope → feel worse → give up. Break it at step one. Just today.",
+  "You don't need willpower. You need to not have the food in the house. Remove the decision.",
+  "Protein at breakfast. That single rule changes the entire day. Do that one thing.",
+  "The gap between where you are and where you want to be is not years. It's weeks. Finite. Countable. Achievable.",
+  "How you feel in clothes is not a small thing. Confidence changes everything — how you walk, how you talk, how people respond to you. This matters.",
+  "You're not starting over. You're picking up a thread. There's a difference.",
+  "The cross trainer is in your house. The sauna is in your house. You have everything you need. The only thing between you and progress is the decision to start.",
+  "10,000 steps every day since May. That's not someone who lacks discipline. That's someone who responds to structure. Build more structure.",
+  "Imagine weighing yourself and seeing 12 stone something. Not dreading it. Just confirming. That's what maintenance feels like.",
+  "Every bad day ends. Every good day compounds. Choose which one to stack.",
+  "The version of you that people remember from five years ago — fitter, more confident, more present — he's not gone. He's buried under a few stone. Dig him out.",
+  "Your ME makes this harder. That's not an excuse — it's a reason to be smarter about it. Structure, not willpower. Rules, not restrictions. Friction, not force.",
+  "This is not forever. The deficit ends. The counting ends. The guilt ends. But only if you do the work now.",
+  "Look forward to wearing your old t-shirts again. Not just the few 'temporary' XL ones you bought to get through this.",
+  "Look forward to buying some new jeans that you can actually be happy in. Not ones that'll do. Ones you chose because you liked them.",
+  "Look forward to having a drink feeling slim and fit. Not calculating the damage. Not promising yourself you'll make up for it tomorrow. Just enjoying it.",
+  "You need to be strong and healthy to look after the people around you who aren't well. You can't pour from an empty cup and you can't carry others if your own body is failing you.",
+  "The next time someone takes a photo of you, will you want to see it or dread it? That's not vanity. That's how you feel about yourself. Fix it.",
+  "You've spent years thinking about losing this weight. The time was going to pass anyway. Imagine if you'd started last time you said 'I'll start Monday.'",
+  "Discipline is a skill, not a trait. You weren't born with more of it at 30. You just had fewer things draining your nervous system. Work with what you've got now — structure.",
+  "Every morning you open this app is a morning you haven't given up. That matters more than you think.",
+];
+
+function getDailyTruth(){
+  const today=new Date();
+  const seed=today.getFullYear()*10000+(today.getMonth()+1)*100+today.getDate();
+  const idx=seed%TRUTHS.length;
+  const truth=TRUTHS[idx];
+  return `<div class="truth-card" onclick="this.querySelector('.truth-text').textContent=TRUTHS[(${idx}+Math.floor(Math.random()*${TRUTHS.length-1})+1)%${TRUTHS.length}]">
+    <div>
+      <div class="truth-text">${truth}</div>
+      <div class="truth-tap">tap for another</div>
+    </div>
+  </div>`;
+}
 
 // ============================================================
 // DATA READERS
@@ -376,6 +435,7 @@ function renderBriefing(el,sub){
   }
 
   el.innerHTML=`
+    ${getDailyTruth()}
     ${slumpWarning}
     ${weighInNudge}
     <div class="card">
@@ -756,7 +816,7 @@ function renderSettings(el,sub){
       <div class="report-row"><span class="label">Christmas</span><span class="value ${readChristmas()?'good':'bad'}">${readChristmas()?'✓ Connected':'✗ Not found'}</span></div>
       <div class="card-sub" style="margin-top:8px">Same patalavaca.github.io domain = automatic connection. Open each app once on this device.</div>
     </div>
-    <div class="card"><div class="card-title">About</div><div class="card-sub">The Operator v2.0 · Command centre.<br>Reads real data. Detects patterns. Challenges honestly.<br>Built June 2026.</div></div>
+    <div class="card"><div class="card-title">About</div><div class="card-sub">The Operator v2.1 · Command centre.<br>Reads real data. Detects patterns. Challenges honestly.<br>Built June 2026.</div></div>
     <button class="btn btn-outline" style="border-color:var(--red-dim);color:var(--red)" onclick="if(confirm('Clear all Operator data?')){localStorage.removeItem('operator_v1');renderContent()}">Reset Operator</button>
   `;
 }
