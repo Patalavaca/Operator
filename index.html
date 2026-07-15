@@ -79,6 +79,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ai-response{background:var(--bg3);border-radius:10px;padding:14px;margin-top:10px;border-left:3px solid var(--gold)}
 .ai-response p{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:8px}
 .ai-response p:last-child{margin-bottom:0}
+.ai-user-msg{background:var(--bg3);border-radius:10px;padding:14px;margin-top:10px;border-left:3px solid var(--teal)}
+.ai-user-msg p{font-size:14px;color:var(--text);line-height:1.6}
+.ai-user-label,.ai-op-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
+.ai-user-label{color:var(--teal)}
+.ai-op-label{color:var(--gold)}
+.reply-area{margin-top:10px}
+.reply-area textarea{width:100%;background:var(--bg);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px;resize:none;min-height:60px}
+.reply-area textarea::placeholder{color:var(--text3)}
+.reply-area textarea:focus{outline:none;border-color:var(--teal-dim)}
 .ai-loading{text-align:center;padding:24px;color:var(--gold-dim);font-size:14px}
 .ai-loading .dots::after{content:'';animation:dots 1.5s infinite}
 @keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
@@ -288,7 +297,7 @@ function readRestore(){return readLS('restore_v2')}
 function readChristmas(){return readLS('christmas_v2')}
 function getOp(){
   const d=readLS('operator_v1');
-  return d||{apiKey:'',weeklyReviews:[],currentWeight:null,contextNotes:'',resetStartDate:null,resetChecks:{}};
+  return d||{apiKey:'',weeklyReviews:[],currentWeight:null,contextNotes:'',resetStartDate:null,resetChecks:{},challengeThread:[]};
 }
 function saveOp(d){localStorage.setItem('operator_v1',JSON.stringify(d))}
 
@@ -619,17 +628,55 @@ function toggleResetCheck(i){
 function renderChallenge(el,sub){
   sub.textContent='AI accountability';
   const op=getOp();
+  const thread=op.challengeThread||[];
   const chips=['ME/CFS','Home gym','Sauna','Past failures','10k steps','Be realistic',"At mum's house",'Diet collapsed','Property work','Grief/family','Low confidence','Weight gain','Stag deadlines','SNS dominant','Need structure','Bounce back mode'];
-  el.innerHTML=`
-    <div class="card"><div class="card-title">Honest review</div><div class="card-sub">The AI reads your real app data and challenges you specifically. Not generic motivation — data-backed, pattern-aware pushback that knows about ME, your nervous system, and your actual situation.</div></div>
-    <div class="ai-prompt-area">
-      <textarea id="aiPrompt" placeholder="What's happening? What went well? What didn't?">${op.contextNotes||''}</textarea>
-      <div class="chips">${chips.map(c=>`<span class="chip" onclick="this.classList.toggle('selected')">${c}</span>`).join('')}</div>
-    </div>
-    <button class="btn btn-gold" id="challengeBtn" onclick="runChallenge()" ${!op.apiKey?'disabled':''}>${!op.apiKey?'Set API key in Settings':'Challenge me'}</button>
-    <div id="aiResponseArea"></div>
-    ${renderPastChallenges()}
-  `;
+  
+  // If no conversation yet, show initial prompt
+  if(!thread.length){
+    el.innerHTML=`
+      <div class="card"><div class="card-title">Honest review</div><div class="card-sub">The AI reads your real app data and challenges you specifically. Not generic motivation — data-backed, pattern-aware pushback that knows about ME, your nervous system, and your actual situation.</div></div>
+      <div class="ai-prompt-area">
+        <textarea id="aiPrompt" placeholder="What's happening? What went well? What didn't?">${op.contextNotes||''}</textarea>
+        <div class="chips">${chips.map(c=>`<span class="chip" onclick="this.classList.toggle('selected')">${c}</span>`).join('')}</div>
+      </div>
+      <button class="btn btn-gold" id="challengeBtn" onclick="runChallenge()" ${!op.apiKey?'disabled':''}>${!op.apiKey?'Set API key in Settings':'Challenge me'}</button>
+      <div id="aiResponseArea"></div>
+      ${renderPastChallenges()}
+    `;
+  } else {
+    // Show conversation thread with reply box
+    let threadHtml='';
+    thread.forEach(msg=>{
+      if(msg.role==='user'){
+        threadHtml+=`<div class="ai-user-msg"><div class="ai-user-label">You</div><p>${msg.display}</p></div>`;
+      } else {
+        threadHtml+=`<div class="ai-response"><div class="ai-op-label">The Operator</div>${msg.display.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('')}</div>`;
+      }
+    });
+    
+    el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title" style="margin:0">Conversation</div>
+        <button class="btn btn-outline" style="width:auto;padding:6px 12px;font-size:12px;margin:0" onclick="clearChallengeThread()">New conversation</button>
+      </div>
+      ${threadHtml}
+      <div class="reply-area">
+        <textarea id="aiReply" placeholder="Reply — answer the question, push back, or ask for more..."></textarea>
+      </div>
+      <button class="btn btn-gold" id="challengeBtn" onclick="sendReply()" style="margin-top:8px">Reply</button>
+      <div id="aiResponseArea"></div>
+    `;
+    // Scroll to bottom
+    setTimeout(()=>{const c=document.getElementById('content');c.scrollTop=c.scrollHeight},100);
+  }
+}
+
+function clearChallengeThread(){
+  if(!confirm('Start a new conversation?'))return;
+  const op=getOp();
+  op.challengeThread=[];
+  saveOp(op);
+  renderContent();
 }
 
 function renderPastChallenges(){
@@ -639,25 +686,20 @@ function renderPastChallenges(){
   return`<div class="card" style="margin-top:12px"><div class="card-title">Past challenges</div>${past.slice(-4).reverse().map(r=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="font-size:11px;color:var(--text3)">${r.date||r.weekOf}</div><div style="font-size:13px;color:var(--text2);margin-top:3px">${(r.aiResponse||'').substring(0,100)}...</div></div>`).join('')}</div>`;
 }
 
-async function runChallenge(){
-  const op=getOp();if(!op.apiKey)return;
-  const prompt=document.getElementById('aiPrompt').value;
-  const chips=[...document.querySelectorAll('.chip.selected')].map(c=>c.textContent);
-  const area=document.getElementById('aiResponseArea'),btn=document.getElementById('challengeBtn');
-  op.contextNotes=prompt;saveOp(op);
-  btn.disabled=true;btn.textContent='Thinking...';
-  area.innerHTML=`<div class="ai-loading">Reading your data<span class="dots"></span></div>`;
+function buildDataContext(){
   const wtd=analyseWTD(),suite=analyseSuite(),restore=analyseRestore(),christmas=analyseChristmas();
-  const dataCtx=`
-REAL APP DATA (not self-reported — actual logged data):
+  const op=getOp();
+  return`REAL APP DATA (not self-reported — actual logged data):
 WTD: ${wtd.available?`Streak: ${wtd.streak}. Week: ${wtd.weekWon} won/${wtd.weekTotal}. Overall: ${wtd.totalWon}/${wtd.totalDays} (${wtd.winRate}%).`:'No data.'}
 DIET: ${suite.available?`Weight: ${suite.latestWeight?lbsToSt(suite.latestWeight):'not logged'}. Start: 13st 9 (191lbs). Target: 11st 12 (162lbs). Food: ${suite.goodDays} good/${suite.badDays} bad days. Watch: ${suite.watchEntries.length} entries.`:'No data.'}
 SESSIONS: ${restore.available?`${Object.keys(restore.sessions).length?Object.entries(restore.sessions).map(([k,v])=>`${k}:${v}`).join(', '):'ZERO sessions.'} ${restore.latestTrack?`Energy:${restore.latestTrack.energy||'?'}/10 Fog:${restore.latestTrack.brainFog||'?'}/10 Chest:${restore.latestTrack.chest||'?'}/10`:''} ${restore.latestFlow?`Flow:${restore.latestFlow.rate||restore.latestFlow.value||'?'}/14`:''}`:'No data.'}
 AIMS: ${christmas.available?`${christmas.aims.filter(a=>a.completed===a.total&&a.total>0).length} done, ${christmas.aims.filter(a=>a.completed>0&&a.completed<a.total).length} moving, ${christmas.aims.filter(a=>a.completed===0).length} not started.`:'No data.'}
 DEADLINES: ${DEADLINES.map(d=>`${d.name}: ${daysUntil(d.date)} days`).join('. ')}.
 RESET: ${op.resetStartDate?`Started ${new Date(op.resetStartDate).toLocaleDateString('en-GB')}`:'Not active.'}`;
+}
 
-  const sysPrompt=`You are The Operator — James's AI accountability partner. You have his REAL tracked data. Context: 45yo male, 5ft11, Altrincham. ME/CFS ~10 years, SNS-dominant. Pharmacist background, works in property. Perrin Technique treatment. Home gym: cross trainer, sauna, dumbbells. Key deadlines: John's stag (London Oct, Dublin Nov 2026), wedding Jan 2027. The plan uses STRUCTURE not willpower — willpower fails with SNS-dominant ME. No calorie counting (cognitive load = SNS trigger). Three diet patterns: post-disruption collapse, emotional/SNS eating, morning-after alcohol. Gran Canaria is the reward for target weight.
+function getSystemPrompt(chips){
+  return`You are The Operator — James's AI accountability partner. You have his REAL tracked data. Context: 45yo male, 5ft11, Altrincham. ME/CFS ~10 years, SNS-dominant. Pharmacist background, works in property. Perrin Technique treatment. Home gym: cross trainer, sauna, dumbbells. Key deadlines: John's stag (London Oct, Dublin Nov 2026), wedding Jan 2027. The plan uses STRUCTURE not willpower — willpower fails with SNS-dominant ME. No calorie counting (cognitive load = SNS trigger). Three diet patterns: post-disruption collapse, emotional/SNS eating, morning-after alcohol. Gran Canaria is the reward for target weight.
 
 YOUR SPECIFIC PATTERNS TO WATCH FOR IN HIS DATA:
 1. ALL-OR-NOTHING: When one thing slips, everything goes. Challenge this directly - one bad week doesn't erase a good month.
@@ -665,22 +707,90 @@ YOUR SPECIFIC PATTERNS TO WATCH FOR IN HIS DATA:
 3. STRUCTURAL vs WILLPOWER confusion: If he's blaming himself for lacking discipline, redirect to structural fixes (environment, pre-decisions, friction).
 4. OVERLOAD BLINDNESS: He takes on too much (property + family + health + apps) then is surprised when something gives. Name this when you see it.
 
-Be honest, specific, data-backed. Challenge on gaps between stated priorities and logged actions. But recognise when circumstances genuinely explain the gap. Ask ONE specific question requiring an honest answer. Under 300 words. Conversational, direct. Like a trusted friend with all his data.
+Be honest, specific, data-backed. Challenge on gaps between stated priorities and logged actions. But recognise when circumstances genuinely explain the gap. This is a conversation — James may reply to your challenges, answer your questions, push back, or ask for more detail. Respond naturally. Keep pushing where needed. Acknowledge when he's right. Ask ONE specific question requiring an honest answer at the end of each response. Under 300 words. Conversational, direct. Like a trusted friend with all his data.
 
 Context chips: ${chips.join(', ')||'none'}`;
+}
+
+async function runChallenge(){
+  const op=getOp();if(!op.apiKey)return;
+  const prompt=document.getElementById('aiPrompt').value;
+  const chips=[...document.querySelectorAll('.chip.selected')].map(c=>c.textContent);
+  const area=document.getElementById('aiResponseArea'),btn=document.getElementById('challengeBtn');
+  op.contextNotes=prompt;
+  if(!op.challengeThread)op.challengeThread=[];
+  btn.disabled=true;btn.textContent='Thinking...';
+  area.innerHTML=`<div class="ai-loading">Reading your data<span class="dots"></span></div>`;
+  
+  const dataCtx=buildDataContext();
+  const userContent=`Data:\n${dataCtx}\n\nMy update:\n${prompt||'Just challenge me based on the data.'}`;
+  
+  // Build messages array — first message includes data context
+  const messages=[{role:'user',content:userContent}];
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:sysPrompt,messages:[{role:'user',content:`Data:\n${dataCtx}\n\nMy update:\n${prompt||'Just challenge me based on the data.'}`}]})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:getSystemPrompt(chips),messages})});
     const data=await r.json();let txt='';
     if(data.content)txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('\n');
     else if(data.error)txt=`Error: ${data.error.message||'Check API key.'}`;
-    area.innerHTML=`<div class="ai-response">${txt.split('\n').filter(p=>p.trim()).map(p=>`<p>${p}</p>`).join('')}</div>`;
+    
+    // Save to thread
+    op.challengeThread=[
+      {role:'user',content:userContent,display:prompt||'Challenge me based on the data.',chips,timestamp:Date.now()},
+      {role:'assistant',content:txt,display:txt,timestamp:Date.now()}
+    ];
+    
+    // Also save to weekly reviews
     const wk=dateKeyFrom(weekStart(new Date()));
     let ex=op.weeklyReviews.find(r=>r.weekOf===wk);
     if(ex){ex.aiResponse=txt}else{op.weeklyReviews.push({weekOf:wk,date:new Date().toLocaleDateString('en-GB'),aiResponse:txt})}
     saveOp(op);
-  }catch(err){area.innerHTML=`<div class="ai-response"><p>Error: ${err.message}</p></div>`}
-  btn.disabled=false;btn.textContent='Challenge me';
+    renderContent();
+  }catch(err){area.innerHTML=`<div class="ai-response"><p>Error: ${err.message}</p></div>`;btn.disabled=false;btn.textContent='Challenge me'}
+}
+
+async function sendReply(){
+  const op=getOp();if(!op.apiKey)return;
+  const replyText=document.getElementById('aiReply').value.trim();
+  if(!replyText)return;
+  const area=document.getElementById('aiResponseArea'),btn=document.getElementById('challengeBtn');
+  btn.disabled=true;btn.textContent='Thinking...';
+  area.innerHTML=`<div class="ai-loading">Thinking<span class="dots"></span></div>`;
+  
+  if(!op.challengeThread)op.challengeThread=[];
+  
+  // Build full message history for the API
+  const dataCtx=buildDataContext();
+  const messages=[];
+  op.challengeThread.forEach((msg,i)=>{
+    if(i===0&&msg.role==='user'){
+      // First user message includes data context
+      messages.push({role:'user',content:msg.content});
+    } else {
+      messages.push({role:msg.role,content:msg.content});
+    }
+  });
+  // Add new reply
+  messages.push({role:'user',content:replyText});
+  
+  // Extract chips from first message if available
+  const firstMsg=op.challengeThread.find(m=>m.chips);
+  const chips=firstMsg?firstMsg.chips:[];
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:getSystemPrompt(chips),messages})});
+    const data=await r.json();let txt='';
+    if(data.content)txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('\n');
+    else if(data.error)txt=`Error: ${data.error.message||'Check API key.'}`;
+    
+    // Append to thread
+    op.challengeThread.push(
+      {role:'user',content:replyText,display:replyText,timestamp:Date.now()},
+      {role:'assistant',content:txt,display:txt,timestamp:Date.now()}
+    );
+    saveOp(op);
+    renderContent();
+  }catch(err){area.innerHTML=`<div class="ai-response"><p>Error: ${err.message}</p></div>`;btn.disabled=false;btn.textContent='Reply'}
 }
 
 // ============================================================
