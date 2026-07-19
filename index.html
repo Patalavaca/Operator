@@ -926,6 +926,45 @@ function renderSettings(el,sub){
       <div class="report-row"><span class="label">Christmas</span><span class="value ${readChristmas()?'good':'bad'}">${readChristmas()?'✓ Connected':'✗ Not found'}</span></div>
       <div class="card-sub" style="margin-top:8px">Same patalavaca.github.io domain = automatic connection. Open each app once on this device.</div>
     </div>
+    <div class="card">
+      <div class="card-title">Debug — What Operator Sees</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Raw data check. If an app is connected but shows no data, the data format may not match what Operator expects.</div>
+      ${(()=>{
+        const wtd=readWTD();
+        const suite=readSuite();
+        const restore=readRestore();
+        const christmas=readChristmas();
+        let html='';
+        // WTD
+        if(wtd){
+          const days=wtd.days||wtd;
+          const dayKeys=Object.keys(days).filter(k=>k.match(/^\d{4}-/));
+          html+=`<div class="report-row"><span class="label">WTD keys format</span><span class="value">${wtd.days?'has .days':'root level'}</span></div>`;
+          html+=`<div class="report-row"><span class="label">WTD day entries</span><span class="value">${dayKeys.length}</span></div>`;
+          if(dayKeys.length){html+=`<div class="report-row"><span class="label">Latest key</span><span class="value">${dayKeys.sort().pop()}</span></div>`}
+          html+=`<div class="report-row"><span class="label">Today key match</span><span class="value">${days[todayKey()]?'✓ Found':'✗ No entry for '+todayKey()}</span></div>`;
+        } else {html+=`<div class="report-row"><span class="label">WTD</span><span class="value bad">No data</span></div>`}
+        // Suite
+        if(suite){
+          html+=`<div class="report-row"><span class="label">Suite top keys</span><span class="value">${Object.keys(suite).slice(0,6).join(', ')}</span></div>`;
+          html+=`<div class="report-row"><span class="label">Suite weights</span><span class="value">${suite.weights?suite.weights.length+' entries':'not found'}</span></div>`;
+          html+=`<div class="report-row"><span class="label">Suite calendar</span><span class="value">${suite.calendar?Object.keys(suite.calendar).length+' entries':'not found'}</span></div>`;
+        } else {html+=`<div class="report-row"><span class="label">Suite</span><span class="value bad">No data</span></div>`}
+        // Restore
+        if(restore){
+          html+=`<div class="report-row"><span class="label">Restore top keys</span><span class="value">${Object.keys(restore).slice(0,6).join(', ')}</span></div>`;
+          html+=`<div class="report-row"><span class="label">Restore sessions</span><span class="value">${restore.sessions?restore.sessions.length+' entries':'not found'}</span></div>`;
+        } else {html+=`<div class="report-row"><span class="label">Restore</span><span class="value bad">No data</span></div>`}
+        // Christmas
+        if(christmas){
+          html+=`<div class="report-row"><span class="label">Christmas top keys</span><span class="value">${Object.keys(christmas).slice(0,6).join(', ')}</span></div>`;
+          html+=`<div class="report-row"><span class="label">Christmas aims</span><span class="value">${christmas.aims?christmas.aims.length+' aims':'not found'}</span></div>`;
+        } else {html+=`<div class="report-row"><span class="label">Christmas</span><span class="value bad">No data</span></div>`}
+        // All localStorage keys
+        html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)"><div class="report-row"><span class="label">All localStorage keys</span><span class="value">${Object.keys(localStorage).join(', ')}</span></div></div>`;
+        return html;
+      })()}
+    </div>
     <div class="card"><div class="card-title">About</div><div class="card-sub">The Operator v2.1 · Command centre.<br>Reads real data. Detects patterns. Challenges honestly.<br>Built June 2026.</div></div>
     <button class="btn btn-outline" style="border-color:var(--red-dim);color:var(--red)" onclick="if(confirm('Clear all Operator data?')){localStorage.removeItem('operator_v1');renderContent()}">Reset Operator</button>
   `;
