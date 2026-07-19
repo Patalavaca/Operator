@@ -322,32 +322,57 @@ function analyseWTD(){
   while(true){
     const k=dateKeyFrom(d),day=days[k];
     if(!day)break;
-    const dt=day.dayType||'normal';
+    const dt=day.type||day.dayType||'normal';
     if(dt==='ill'||dt==='holiday'){streak++;d.setDate(d.getDate()-1);continue}
-    const tasks=(day.tasks||[]).filter(t=>t&&t.text&&t.text.trim());
-    if(!tasks.length){d.setDate(d.getDate()-1);continue}
-    if(tasks.every(t=>t.done)){streak++;d.setDate(d.getDate()-1)}else break;
+    // WTD stores tasks as string array and done as boolean array
+    const tasks=day.tasks||[];
+    const done=day.done||[];
+    const hasTasks=tasks.some(t=>t&&String(t).trim());
+    if(!hasTasks){d.setDate(d.getDate()-1);continue}
+    const allDone=tasks.every((t,i)=>!t||!String(t).trim()||done[i]);
+    if(allDone&&hasTasks){streak++;d.setDate(d.getDate()-1)}else break;
   }
   const ws=weekStart(new Date());let weekWon=0,weekLost=0,weekTotal=0;
   for(let i=0;i<7;i++){
     const wd=addDaysToDate(ws,i);if(wd>new Date())break;
     const k=dateKeyFrom(wd),day=days[k];if(!day)continue;weekTotal++;
-    const dt=day.dayType||'normal';
+    const dt=day.type||day.dayType||'normal';
     if(dt==='holiday'){weekWon++;continue}if(dt==='ill')continue;
-    const tasks=(day.tasks||[]).filter(t=>t&&t.text&&t.text.trim());
-    if(!tasks.length)continue;
-    if(tasks.every(t=>t.done))weekWon++;else weekLost++;
+    const tasks=day.tasks||[];
+    const done=day.done||[];
+    const hasTasks=tasks.some(t=>t&&String(t).trim());
+    if(!hasTasks)continue;
+    const allDone=tasks.every((t,i)=>!t||!String(t).trim()||done[i]);
+    if(allDone&&hasTasks)weekWon++;else weekLost++;
   }
   let todayStatus='not set',todayTasks=[];
   const td=days[todayKey()];
   if(td){
-    const dt=td.dayType||'normal';
+    const dt=td.type||td.dayType||'normal';
     if(dt==='ill')todayStatus='ill day';
     else if(dt==='holiday')todayStatus='holiday';
-    else{todayTasks=(td.tasks||[]).filter(t=>t&&t.text&&t.text.trim());todayStatus=todayTasks.length?`${todayTasks.filter(t=>t.done).length}/${todayTasks.length} done`:'no tasks set'}
+    else{
+      const tasks=td.tasks||[];
+      const done=td.done||[];
+      const active=tasks.filter(t=>t&&String(t).trim());
+      todayTasks=active;
+      if(active.length){
+        const doneCount=tasks.reduce((c,t,i)=>(t&&String(t).trim()&&done[i])?c+1:c,0);
+        todayStatus=`${doneCount}/${active.length} done`;
+      }else{todayStatus='no tasks set'}
+    }
   }
   let totalWon=0,totalDays=0;
-  Object.values(days).forEach(day=>{if(!day)return;totalDays++;const dt=day.dayType||'normal';if(dt==='holiday'){totalWon++;return}if(dt==='ill')return;const t=(day.tasks||[]).filter(t=>t&&t.text&&t.text.trim());if(t.length>0&&t.every(t=>t.done))totalWon++});
+  Object.values(days).forEach(day=>{
+    if(!day||typeof day!=='object')return;totalDays++;
+    const dt=day.type||day.dayType||'normal';
+    if(dt==='holiday'){totalWon++;return}if(dt==='ill')return;
+    const tasks=day.tasks||[];
+    const done=day.done||[];
+    const hasTasks=tasks.some(t=>t&&String(t).trim());
+    const allDone=tasks.every((t,i)=>!t||!String(t).trim()||done[i]);
+    if(hasTasks&&allDone)totalWon++;
+  });
   return{available:true,streak,weekWon,weekLost,weekTotal,todayStatus,todayTasks,totalWon,totalDays,winRate:totalDays?Math.round(totalWon/totalDays*100):0};
 }
 
