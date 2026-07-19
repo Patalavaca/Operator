@@ -356,10 +356,11 @@ function analyseSuite(){
   let latestWeight=null,weightHistory=[];
   if(data.weights&&Array.isArray(data.weights)){
     weightHistory=data.weights.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
-    if(weightHistory.length)latestWeight=parseWeight(weightHistory[0].value||weightHistory[0].weight);
+    if(weightHistory.length)latestWeight=parseWeight(weightHistory[0].lbs||weightHistory[0].value||weightHistory[0].weight);
   }
   const ws=weekStart(new Date());let goodDays=0,badDays=0;
-  if(data.calendar){for(let i=0;i<7;i++){const wd=addDaysToDate(ws,i);if(wd>new Date())break;const k=dateKeyFrom(wd);if(data.calendar[k]==='good')goodDays++;else if(data.calendar[k]==='bad')badDays++}}
+  const cal=data.food||data.calendar||{};
+  for(let i=0;i<7;i++){const wd=addDaysToDate(ws,i);if(wd>new Date())break;const k=dateKeyFrom(wd);if(cal[k]==='good')goodDays++;else if(cal[k]==='bad')badDays++}
   let watchEntries=[];
   if(data.watch&&Array.isArray(data.watch)){const wt=ws.getTime();watchEntries=data.watch.filter(w=>new Date(w.date).getTime()>=wt)}
   return{available:true,latestWeight,weightHistory,goodDays,badDays,watchEntries};
@@ -368,7 +369,17 @@ function analyseSuite(){
 function analyseRestore(){
   const data=readRestore();if(!data)return{available:false};
   const ws=weekStart(new Date()),wt=ws.getTime();let sessions={};
-  if(data.sessions&&Array.isArray(data.sessions)){data.sessions.filter(s=>new Date(s.date).getTime()>=wt).forEach(s=>{sessions[s.type]=(sessions[s.type]||0)+1})}
+  const log=data.log||data.sessions||[];
+  if(Array.isArray(log)){
+    log.forEach(s=>{
+      // Parse date - could be 'DD/MM/YYYY' (en-GB) or ISO format
+      let sDate;
+      if(s.date&&s.date.includes('/')){const p=s.date.split('/');sDate=new Date(p[2],p[1]-1,p[0])}
+      else if(s.date){sDate=new Date(s.date)}
+      else if(s.ts){sDate=new Date(s.ts)}
+      if(sDate&&sDate.getTime()>=wt){const name=s.name||s.type||'Unknown';sessions[name]=(sessions[name]||0)+1}
+    });
+  }
   let latestTrack=null;if(data.tracks&&data.tracks.length)latestTrack=data.tracks[data.tracks.length-1];
   let latestFlow=null;if(data.perrin&&data.perrin.length)latestFlow=data.perrin[data.perrin.length-1];
   return{available:true,sessions,latestTrack,latestFlow};
@@ -376,7 +387,31 @@ function analyseRestore(){
 
 function analyseChristmas(){
   const data=readChristmas();if(!data)return{available:false};
-  return{available:true,aims:(data.aims||[]).map(a=>({name:a.name||a.title||'Unnamed',steps:a.steps||[],completed:(a.steps||[]).filter(s=>s.done||s.completed).length,total:(a.steps||[]).length,weightGate:a.weightGate||null,aiGenerated:a.aiGenerated||false}))};
+  // Christmas stores state as {aimId: {done:[0,1,2...]}, ...}
+  // AIMS are hardcoded in the Christmas app, so we define them here too
+  const XMAS_AIMS=[
+    {id:'weight',name:'Lose the Weight',total:5},
+    {id:'glyn',name:'Meet Glyn for a Beer',total:3},
+    {id:'london',name:'London Stag',total:5,weightGate:'12st 4'},
+    {id:'dublin',name:'Dublin Stag',total:5,weightGate:'12st 4'},
+    {id:'wedding',name:'John\'s Wedding',total:5,weightGate:'12st 2'},
+    {id:'padel',name:'Play Padel',total:4,weightGate:'12st 0'},
+    {id:'sauna',name:'Use the Sauna Properly',total:4},
+    {id:'yoga',name:'Try Yoga',total:4,weightGate:'12st 4'},
+    {id:'krav',name:'Try Krav Maga',total:4,weightGate:'12st 0'},
+    {id:'painting',name:'365 Days of Art',total:4},
+    {id:'canaria',name:'Gran Canaria Solo',total:4,weightGate:'11st 12'},
+    {id:'cooking',name:'Cook Properly',total:4},
+    {id:'move',name:'Join a Gym',total:4,weightGate:'12st 4'},
+    {id:'michelle',name:'Return to Michelle',total:3}
+  ];
+  return{available:true,aims:XMAS_AIMS.map(a=>{
+    const aimState=data[a.id];
+    const completed=aimState&&aimState.done?aimState.done.length:0;
+    // Check for AI-generated steps which may change the total
+    const aiTotal=aimState&&aimState.aiSteps?aimState.aiSteps.length:a.total;
+    return{name:a.name,completed,total:aiTotal,weightGate:a.weightGate||null};
+  })};
 }
 
 function getCurrentWeight(){
