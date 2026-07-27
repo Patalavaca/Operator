@@ -373,7 +373,16 @@ function analyseWTD(){
     const allDone=tasks.every((t,i)=>!t||!String(t).trim()||done[i]);
     if(hasTasks&&allDone)totalWon++;
   });
-  return{available:true,streak,weekWon,weekLost,weekTotal,todayStatus,todayTasks,totalWon,totalDays,winRate:totalDays?Math.round(totalWon/totalDays*100):0};
+  // Analyse daily habits
+  let habitStats={};
+  const habitIds=['social','phone','steps'];
+  const wsH=weekStart(new Date());
+  habitIds.forEach(id=>{let count=0,total=0;
+    for(let i=0;i<7;i++){const wd=addDaysToDate(wsH,i);if(wd>new Date())break;
+      const k=dateKeyFrom(wd),day=days[k];if(!day)continue;total++;
+      if(day.habits&&day.habits[id])count++}
+    habitStats[id]={count,total}});
+  return{available:true,streak,weekWon,weekLost,weekTotal,todayStatus,todayTasks,totalWon,totalDays,winRate:totalDays?Math.round(totalWon/totalDays*100):0,habitStats};
 }
 
 function analyseSuite(){
@@ -544,6 +553,10 @@ function renderReport(el,sub){
       <div class="report-row"><span class="label">Days lost</span><span class="value ${wtd.weekLost===0?'good':'bad'}">${wtd.weekLost}</span></div>
       <div class="report-row"><span class="label">Current streak</span><span class="value">${wtd.streak}</span></div>
       <div class="report-row"><span class="label">Win rate</span><span class="value">${wtd.winRate}%</span></div>
+      ${wtd.habitStats?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)"><div style="font-size:11px;color:var(--teal);margin-bottom:4px;font-weight:600">Daily Habits</div>
+      <div class="report-row"><span class="label">Social media ≤15 mins</span><span class="value ${(wtd.habitStats.social||{}).count>=(wtd.habitStats.social||{}).total-1?'good':'bad'}">${(wtd.habitStats.social||{}).count||0}/${(wtd.habitStats.social||{}).total||0}</span></div>
+      <div class="report-row"><span class="label">No phone at night</span><span class="value ${(wtd.habitStats.phone||{}).count>=(wtd.habitStats.phone||{}).total-1?'good':'bad'}">${(wtd.habitStats.phone||{}).count||0}/${(wtd.habitStats.phone||{}).total||0}</span></div>
+      <div class="report-row"><span class="label">10k steps</span><span class="value ${(wtd.habitStats.steps||{}).count>=(wtd.habitStats.steps||{}).total-1?'good':'bad'}">${(wtd.habitStats.steps||{}).count||0}/${(wtd.habitStats.steps||{}).total||0}</span></div></div>`:''}
     `:`<div class="card-sub">Open WTD on this device first.</div>`}</div>
     <div class="card"><div class="report-header">Diet & Weight</div>${suite.available?`
       <div class="report-row"><span class="label">Good food days</span><span class="value ${suite.goodDays>=5?'good':suite.goodDays>=3?'neutral':'bad'}">${suite.goodDays}</span></div>
