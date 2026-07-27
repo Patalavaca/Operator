@@ -118,6 +118,29 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .vision-then{background:var(--green-faint);color:var(--green)}
 .vision-now strong,.vision-then strong{display:block;margin-bottom:4px;font-size:13px}
 /* IN THE MOMENT */
+/* JOURNAL */
+.journal-entry{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.04);border-left:3px solid var(--teal-dim)}
+.journal-entry.rule{border-left-color:var(--gold-dim)}
+.journal-entry.pattern{border-left-color:var(--amber)}
+.journal-entry.pre-trip{border-left-color:var(--green-dim)}
+.journal-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.journal-date{font-size:11px;color:var(--text3)}
+.journal-tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.journal-tag.thought{background:var(--teal-faint);color:var(--teal)}
+.journal-tag.rule{background:var(--gold-faint);color:var(--gold)}
+.journal-tag.pattern{background:var(--amber-faint);color:var(--amber)}
+.journal-tag.pre-trip{background:var(--green-faint);color:var(--green)}
+.journal-body{font-size:14px;color:var(--text);line-height:1.6}
+.journal-delete{background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:2px 6px}
+.journal-input textarea{width:100%;background:var(--bg);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text);font-family:var(--font-body);font-size:14px;padding:10px;resize:none;min-height:80px}
+.journal-input textarea::placeholder{color:var(--text3)}
+.journal-input textarea:focus{outline:none;border-color:var(--teal-dim)}
+.journal-tags{display:flex;gap:5px;margin:8px 0}
+.journal-tag-btn{font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:none;color:var(--text3);cursor:pointer}
+.journal-tag-btn.active{border-color:var(--teal-dim);color:var(--teal);background:var(--teal-faint)}
+.journal-filter{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}
+.journal-filter-btn{font-size:11px;padding:3px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:none;color:var(--text3);cursor:pointer}
+.journal-filter-btn.active{border-color:var(--teal-dim);color:var(--teal);background:var(--teal-faint)}
 /* DAILY TRUTH */
 .truth-card{background:linear-gradient(135deg,#1a1a0a,var(--bg2));border:1px solid var(--gold-faint);border-radius:14px;padding:20px 16px;margin-bottom:12px;cursor:pointer;text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center;flex-direction:column}
 .truth-text{font-family:var(--font-display);font-size:16px;color:var(--gold);line-height:1.5;font-weight:600}
@@ -202,7 +225,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // Own key: operator_v1
 // ============================================================
 
-const TABS=['Briefing','Report','Aims','Reset','Challenge','Priority','Other Side','Settings'];
+const TABS=['Briefing','Report','Aims','Reset','Challenge','Journal','Priority','Other Side','Settings'];
 let currentTab='Briefing';
 
 const DEADLINES=[
@@ -462,7 +485,7 @@ function renderTabs(){
 function switchTab(t){currentTab=t;renderTabs();renderContent()}
 function renderContent(){
   const el=document.getElementById('content'),sub=document.getElementById('headerSub');
-  const renderers={Briefing:renderBriefing,Report:renderReport,Aims:renderAims,Reset:renderReset,Challenge:renderChallenge,Priority:renderPriority,'Other Side':renderOtherSide,Settings:renderSettings};
+  const renderers={Briefing:renderBriefing,Report:renderReport,Aims:renderAims,Reset:renderReset,Challenge:renderChallenge,Journal:renderJournal,Priority:renderPriority,'Other Side':renderOtherSide,Settings:renderSettings};
   (renderers[currentTab]||renderBriefing)(el,sub);
 }
 
@@ -768,7 +791,7 @@ DIET: ${suite.available?`Weight: ${suite.latestWeight?lbsToSt(suite.latestWeight
 SESSIONS: ${restore.available?`${Object.keys(restore.sessions).length?Object.entries(restore.sessions).map(([k,v])=>`${k}:${v}`).join(', '):'ZERO sessions.'} ${restore.latestTrack?`Energy:${restore.latestTrack.energy||'?'}/10 Fog:${restore.latestTrack.brainFog||'?'}/10 Chest:${restore.latestTrack.chest||'?'}/10`:''} ${restore.latestFlow?`Flow:${restore.latestFlow.rate||restore.latestFlow.value||'?'}/14`:''}`:'No data.'}
 AIMS: ${christmas.available?`${christmas.aims.filter(a=>a.completed===a.total&&a.total>0).length} done, ${christmas.aims.filter(a=>a.completed>0&&a.completed<a.total).length} moving, ${christmas.aims.filter(a=>a.completed===0).length} not started.`:'No data.'}
 DEADLINES: ${DEADLINES.map(d=>`${d.name}: ${daysUntil(d.date)} days`).join('. ')}.
-RESET: ${op.resetStartDate?`Started ${new Date(op.resetStartDate).toLocaleDateString('en-GB')}`:'Not active.'}`;
+RESET: ${op.resetStartDate?`Started ${new Date(op.resetStartDate).toLocaleDateString('en-GB')}`:'Not active.'}${getJournalContext()}`;
 }
 
 function getSystemPrompt(chips){
@@ -864,6 +887,104 @@ async function sendReply(){
     saveOp(op);
     renderContent();
   }catch(err){area.innerHTML=`<div class="ai-response"><p>Error: ${err.message}</p></div>`;btn.disabled=false;btn.textContent='Reply'}
+}
+
+// ============================================================
+// JOURNAL — Notes, Rules, Patterns
+// ============================================================
+const JOURNAL_TAGS=['thought','rule','pattern','pre-trip'];
+let journalFilter='all';
+
+function renderJournal(el,sub){
+  sub.textContent='Notes & rules';
+  const op=getOp();
+  if(!op.journal)op.journal=[];
+  
+  const filtered=journalFilter==='all'?op.journal:op.journal.filter(e=>e.tag===journalFilter);
+  
+  el.innerHTML=`
+    <div class="card">
+      <div class="card-title">Capture a thought</div>
+      <div class="card-sub" style="margin-bottom:8px">Rules you've learned, patterns you've noticed, pre-trip decisions, or anything worth remembering. The AI Challenge can reference these.</div>
+      <div class="journal-input">
+        <textarea id="journalText" placeholder="e.g. After beer I always binge on crisps. The beer isn't the problem — it's what happens after. Rule: if I drink, I go straight to bed. No kitchen."></textarea>
+      </div>
+      <div class="journal-tags">
+        ${JOURNAL_TAGS.map(t=>`<button class="journal-tag-btn" id="jtag-${t}" onclick="selectJournalTag('${t}')">${t}</button>`).join('')}
+      </div>
+      <button class="btn btn-gold" onclick="addJournalEntry()" style="margin-top:4px">Save</button>
+    </div>
+    
+    ${op.journal.length?`<div class="journal-filter">
+      <button class="journal-filter-btn ${journalFilter==='all'?'active':''}" onclick="filterJournal('all')">All (${op.journal.length})</button>
+      ${JOURNAL_TAGS.map(t=>{const c=op.journal.filter(e=>e.tag===t).length;return c?`<button class="journal-filter-btn ${journalFilter===t?'active':''}" onclick="filterJournal('${t}')">${t} (${c})</button>`:''}).join('')}
+    </div>`:''}
+    
+    ${filtered.length?filtered.slice().reverse().map((e,i)=>{
+      const idx=op.journal.length-1-i;
+      const realIdx=journalFilter==='all'?idx:op.journal.indexOf(filtered[filtered.length-1-i]);
+      return`<div class="journal-entry ${e.tag||'thought'}">
+        <div class="journal-meta">
+          <div><span class="journal-date">${e.date||'—'}</span> <span class="journal-tag ${e.tag||'thought'}">${e.tag||'thought'}</span></div>
+          <button class="journal-delete" onclick="deleteJournalEntry(${realIdx})">✕</button>
+        </div>
+        <div class="journal-body">${e.text}</div>
+      </div>`;
+    }).join(''):`<div class="empty">No entries yet.${journalFilter!=='all'?' Try "All" filter.':' Write your first thought above.'}</div>`}
+  `;
+}
+
+let selectedJournalTag='thought';
+function selectJournalTag(tag){
+  selectedJournalTag=tag;
+  JOURNAL_TAGS.forEach(t=>{
+    const btn=document.getElementById('jtag-'+t);
+    if(btn)btn.className='journal-tag-btn'+(t===tag?' active':'');
+  });
+}
+
+function addJournalEntry(){
+  const text=document.getElementById('journalText').value.trim();
+  if(!text)return;
+  const op=getOp();
+  if(!op.journal)op.journal=[];
+  op.journal.push({
+    text,
+    tag:selectedJournalTag,
+    date:new Date().toLocaleDateString('en-GB'),
+    timestamp:Date.now()
+  });
+  saveOp(op);
+  renderContent();
+}
+
+function deleteJournalEntry(idx){
+  if(!confirm('Delete this entry?'))return;
+  const op=getOp();
+  if(!op.journal)return;
+  op.journal.splice(idx,1);
+  saveOp(op);
+  renderContent();
+}
+
+function filterJournal(f){
+  journalFilter=f;
+  renderContent();
+}
+
+function getJournalContext(){
+  const op=getOp();
+  if(!op.journal||!op.journal.length)return'';
+  const rules=op.journal.filter(e=>e.tag==='rule');
+  const patterns=op.journal.filter(e=>e.tag==='pattern');
+  const preTrip=op.journal.filter(e=>e.tag==='pre-trip');
+  const thoughts=op.journal.filter(e=>e.tag==='thought');
+  let ctx='\nJOURNAL ENTRIES:';
+  if(rules.length)ctx+=`\nRules: ${rules.map(r=>r.text).join(' | ')}`;
+  if(patterns.length)ctx+=`\nPatterns: ${patterns.map(p=>p.text).join(' | ')}`;
+  if(preTrip.length)ctx+=`\nPre-trip notes: ${preTrip.map(p=>p.text).join(' | ')}`;
+  if(thoughts.length)ctx+=`\nThoughts: ${thoughts.slice(-5).map(t=>t.text).join(' | ')}`;
+  return ctx;
 }
 
 // ============================================================
