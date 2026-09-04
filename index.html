@@ -552,7 +552,7 @@ function renderBriefing(el,sub){
     </div>
     <div class="card" style="margin-top:10px">
       <div class="card-title">Deadlines</div>
-      ${DEADLINES.map(d=>{const dy=daysUntil(d.date);return`<div class="deadline-row"><div><div class="deadline-name">${d.icon} ${d.name}</div><div class="deadline-date">${d.date.getDate()}/${d.date.getMonth()+1}/${d.date.getFullYear()}</div></div><div class="deadline-days ${dy<30?'urgent':dy<90?'soon':'ok'}">${dy>0?dy+' days':'Today!'}</div></div>`}).join('')}
+      ${DEADLINES.map(d=>{const dy=daysUntil(d.date);return`<div class="deadline-row"><div><div class="deadline-name">${d.icon} ${d.name}</div><div class="deadline-date">${d.date.getDate()}/${d.date.getMonth()+1}/${d.date.getFullYear()}</div></div><div class="deadline-days ${dy<30?'urgent':dy<90?'soon':'ok'}">${dy>0?dy+' days':dy===0?'Today!':'✓'}</div></div>`}).join('')}
     </div>
     ${nextMilestone?`<div class="card"><div class="card-title">Next milestone</div><div class="card-value">${nextMilestone.st}</div><div class="card-sub">${nextMilestone.label} · ${Math.round(cw-nextMilestone.lbs)} lbs to go</div></div>`:''}
     ${restore.available&&Object.keys(restore.sessions).length>0?`<div class="card"><div class="card-title">Sessions this week</div>${Object.entries(restore.sessions).map(([k,v])=>`<div class="report-row"><span class="label">${k}</span><span class="value">${v}</span></div>`).join('')}</div>`:''}
