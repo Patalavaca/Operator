@@ -790,7 +790,7 @@ WTD: ${wtd.available?`Streak: ${wtd.streak}. Week: ${wtd.weekWon} won/${wtd.week
 DIET: ${suite.available?`Weight: ${suite.latestWeight?lbsToSt(suite.latestWeight):'not logged'}. Start: 13st 9 (191lbs). Target: 11st 12 (162lbs). Food: ${suite.goodDays} good/${suite.badDays} bad days. Watch: ${suite.watchEntries.length} entries.`:'No data.'}
 SESSIONS: ${restore.available?`${Object.keys(restore.sessions).length?Object.entries(restore.sessions).map(([k,v])=>`${k}:${v}`).join(', '):'ZERO sessions.'} ${restore.latestTrack?`Energy:${restore.latestTrack.energy||'?'}/10 Fog:${restore.latestTrack.brainFog||'?'}/10 Chest:${restore.latestTrack.chest||'?'}/10`:''} ${restore.latestFlow?`Flow:${restore.latestFlow.rate||restore.latestFlow.value||'?'}/14`:''}`:'No data.'}
 AIMS: ${christmas.available?`${christmas.aims.filter(a=>a.completed===a.total&&a.total>0).length} done, ${christmas.aims.filter(a=>a.completed>0&&a.completed<a.total).length} moving, ${christmas.aims.filter(a=>a.completed===0).length} not started.`:'No data.'}
-DEADLINES: ${DEADLINES.map(d=>{const dy=daysUntil(d.date);return dy>0?`${d.name}: ${dy} days away`:`${d.name}: PASSED (${d.date.toLocaleDateString('en-GB')})`}).join('. ')}.
+DEADLINES: ${DEADLINES.map(d=>{const dy=daysUntil(d.date);return dy>0?`${d.name}: ${dy} days away`:`${d.name}: — (${d.date.toLocaleDateString('en-GB')})`}).join('. ')}.
 RESET: ${op.resetStartDate?`Started ${new Date(op.resetStartDate).toLocaleDateString('en-GB')}`:'Not active.'}${getJournalContext()}`;
 }
 
@@ -825,7 +825,7 @@ async function runChallenge(){
   const messages=[{role:'user',content:userContent}];
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-5',max_tokens:1000,system:getSystemPrompt(chips),messages})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2025-04-15','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-5',max_tokens:16000,thinking:{type:'enabled',budget_tokens:10000},system:getSystemPrompt(chips),messages})});
     const data=await r.json();let txt='';
     if(data.content)txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('\n');
     else if(data.error)txt=`Error: ${data.error.message||'Check API key.'}`;
@@ -874,7 +874,7 @@ async function sendReply(){
   const chips=firstMsg?firstMsg.chips:[];
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-5',max_tokens:1000,system:getSystemPrompt(chips),messages})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':op.apiKey,'anthropic-version':'2025-04-15','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-opus-5',max_tokens:16000,thinking:{type:'enabled',budget_tokens:10000},system:getSystemPrompt(chips),messages})});
     const data=await r.json();let txt='';
     if(data.content)txt=data.content.filter(c=>c.type==='text').map(c=>c.text).join('\n');
     else if(data.error)txt=`Error: ${data.error.message||'Check API key.'}`;
